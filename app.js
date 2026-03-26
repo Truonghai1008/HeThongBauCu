@@ -1,7 +1,7 @@
 let contract;
 let signer;
 let timerInterval;
-const contractAddress = "0x3C1f6768dEA64B02bf0c3248fb880eFEAeeCcA57"; 
+const contractAddress = "0x6D0E5F9e05443ea97eb844E25810b62C62CbA9fe"; 
 
 async function init() {
     if (window.ethereum) {
@@ -46,7 +46,7 @@ async function showDashboard(address, name) {
 
     const adminAddr = await contract.admin();
     const adminBtn = document.getElementById("adminQuickBtn");
-    const startBtn = document.getElementById("startElectionBtn"); // Nút Bắt đầu trong Admin Panel
+    const startBtn = document.getElementById("startElectionBtn");
 
     if (address.toLowerCase() === adminAddr.toLowerCase()) {
         if (adminBtn) adminBtn.style.display = "inline-block";
@@ -55,13 +55,12 @@ async function showDashboard(address, name) {
 
     document.getElementById("displayName").innerText = `Xin chào: ${name}`;
     loadCandidates();
-    runCountdown(); // Kích hoạt đồng hồ
+    runCountdown();
 }
 
 async function runCountdown() {
     if (timerInterval) clearInterval(timerInterval);
     
-    // Tạo một hàm con để chạy ngay lập tức thay vì đợi 1s
     const updateUI = async () => {
         const timerLabel = document.getElementById("timerDisplay");
         if (!timerLabel) return;
@@ -97,9 +96,7 @@ async function runCountdown() {
         }
     };
 
-    // Chạy ngay lần đầu tiên
     await updateUI();
-    // Sau đó mới chạy lặp lại mỗi giây
     timerInterval = setInterval(updateUI, 1000);
 }
 
@@ -122,6 +119,7 @@ async function vote(id) {
         loadCandidates();
     } catch (e) { alert(e.reason || "Lỗi: Cuộc bầu cử chưa bắt đầu hoặc đã kết thúc!"); }
 }
+
 async function loadCandidates() {
     const listDiv = document.getElementById("candidateList");
     const resultsDiv = document.getElementById("resultsChart");
@@ -135,10 +133,9 @@ async function loadCandidates() {
         let totalVotes = 0;
         const candidatesData = [];
 
-        // Lấy dữ liệu từ Blockchain
         for (let i = 1; i <= totalCandidates; i++) {
             const c = await contract.getCandidate(i); 
-            if (c[4]) { // Kiểm tra nếu active == true
+            if (c[4]) { 
                 totalVotes += Number(c[2]);
                 candidatesData.push(c);
             }
@@ -148,16 +145,12 @@ async function loadCandidates() {
         resultsDiv.innerHTML = "";
         
         for (let candidate of candidatesData) {
-            const [id, name, votes, imageCID] = candidate;
+            const [id, name, votes] = candidate;
             const percentage = totalVotes > 0 ? (Number(votes) / totalVotes * 100) : 0;
             
-            // Xử lý hiển thị ảnh
-            const isBase64 = imageCID && imageCID.startsWith("data:image");
-            const avatarHTML = isBase64 
-                ? `<img src="${imageCID}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;">`
-                : `<div style="width:50px; height:50px; border-radius:50%; background:#3498db; color:white; display:flex; align-items:center; justify-content:center;">${name.charAt(0)}</div>`;
+            // Avatar dạng chữ cái đầu (không dùng ảnh Base64)
+            const avatarHTML = `<div style="width:50px; height:50px; border-radius:50%; background:#3498db; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2rem;">${name.charAt(0).toUpperCase()}</div>`;
 
-            // HTML cho danh sách bầu chọn
             const item = document.createElement("div");
             item.className = "candidate-item";
             item.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px;";
@@ -170,7 +163,6 @@ async function loadCandidates() {
             `;
             listDiv.appendChild(item);
 
-            // HTML cho bảng kết quả
             const resultRow = document.createElement("div");
             resultRow.style = "margin-bottom: 10px;";
             resultRow.innerHTML = `
@@ -188,36 +180,34 @@ async function loadCandidates() {
         listDiv.innerHTML = "Không thể tải dữ liệu từ Blockchain.";
     }
 }
+
 async function addNewCandidate() {
-    const name = document.getElementById("candidateNameInput").value;
-    const fileInput = document.getElementById("candidateImageInput");
-    if (!name) return alert("Nhập tên!");
+    const nameInput = document.getElementById("candidateNameInput");
+    if (!nameInput || !nameInput.value) return alert("Nhập tên!");
 
-    if (fileInput.files.length > 0) {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const base64 = e.target.result;
-            if (base64.length > 5000) return alert("Ảnh quá lớn (>4KB). Vui lòng chọn ảnh nhỏ hơn!");
-            await sendCandidateTx(name, base64);
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-    } else { await sendCandidateTx(name, ""); }
-}
-
-async function sendCandidateTx(name, cid) {
-    const tx = await contract.addCandidate(name, cid);
-    await tx.wait();
-    location.reload();
+    try {
+        // Gửi chuỗi rỗng cho phần ảnh (cid)
+        const tx = await contract.addCandidate(nameInput.value, "");
+        alert("Đang thực hiện giao dịch...");
+        await tx.wait();
+        alert("Thêm ứng viên thành công!");
+        nameInput.value = ""; // Xóa text sau khi xong
+        location.reload();
+    } catch (e) {
+        alert("Lỗi: " + (e.reason || e.message));
+    }
 }
 
 async function deleteCandidate(id) {
     if (!confirm("Xóa ứng viên?")) return;
-    const tx = await contract.deleteCandidate(id);
-    await tx.wait();
-    loadCandidates();
+    try {
+        const tx = await contract.deleteCandidate(id);
+        await tx.wait();
+        loadCandidates();
+    } catch (e) { alert(e.reason || e.message); }
 }
 
-// Map windows functions
+// Map functions to window for HTML access
 window.handleAuth = handleAuth;
 window.handleStartElection = handleStartElection;
 window.vote = vote;
