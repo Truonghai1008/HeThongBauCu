@@ -1,7 +1,7 @@
 let contract;
 let signer;
 let timerInterval;
-const contractAddress = "0xe2FE81944F0a77EC741B46b448f1E7312a88319D"; 
+const contractAddress = "0x6a1a10AAE5AcA3b671bd2e5609120a813aE93277"; 
 
 async function init() {
     if (window.ethereum) {
@@ -104,7 +104,72 @@ async function vote(id) {
         loadCandidates();
     } catch (e) { alert(e.reason || "Lỗi: Cuộc bầu cử chưa bắt đầu hoặc đã kết thúc!"); }
 }
+async function loadCandidates() {
+    const listDiv = document.getElementById("candidateList");
+    const resultsDiv = document.getElementById("resultsChart");
+    if (!listDiv || !resultsDiv) return;
 
+    listDiv.innerHTML = "<p>Đang tải dữ liệu ứng viên...</p>";
+    
+    try {
+        const count = await contract.candidatesCount();
+        const totalCandidates = Number(count);
+        let totalVotes = 0;
+        const candidatesData = [];
+
+        // Lấy dữ liệu từ Blockchain
+        for (let i = 1; i <= totalCandidates; i++) {
+            const c = await contract.getCandidate(i); 
+            if (c[4]) { // Kiểm tra nếu active == true
+                totalVotes += Number(c[2]);
+                candidatesData.push(c);
+            }
+        }
+
+        listDiv.innerHTML = "";
+        resultsDiv.innerHTML = "";
+        
+        for (let candidate of candidatesData) {
+            const [id, name, votes, imageCID] = candidate;
+            const percentage = totalVotes > 0 ? (Number(votes) / totalVotes * 100) : 0;
+            
+            // Xử lý hiển thị ảnh
+            const isBase64 = imageCID && imageCID.startsWith("data:image");
+            const avatarHTML = isBase64 
+                ? `<img src="${imageCID}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;">`
+                : `<div style="width:50px; height:50px; border-radius:50%; background:#3498db; color:white; display:flex; align-items:center; justify-content:center;">${name.charAt(0)}</div>`;
+
+            // HTML cho danh sách bầu chọn
+            const item = document.createElement("div");
+            item.className = "candidate-item";
+            item.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px;";
+            item.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    ${avatarHTML}
+                    <div><strong>${name}</strong><br><small>ID: #${id}</small></div>
+                </div>
+                <button onclick="vote(${id})" style="padding: 5px 15px; cursor: pointer; background:#3498db; color:white; border:none; border-radius:4px;">Bầu chọn</button>
+            `;
+            listDiv.appendChild(item);
+
+            // HTML cho bảng kết quả
+            const resultRow = document.createElement("div");
+            resultRow.style = "margin-bottom: 10px;";
+            resultRow.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <span>${name}</span>
+                    <span><strong>${votes}</strong> phiếu (${percentage.toFixed(1)}%)</span>
+                </div>
+                <div style="background: #eee; height: 8px; border-radius: 4px; margin-top: 5px;">
+                    <div style="background: #3498db; width: ${percentage}%; height: 100%; border-radius: 4px;"></div>
+                </div>`;
+            resultsDiv.appendChild(resultRow);
+        }
+    } catch (err) {
+        console.error(err);
+        listDiv.innerHTML = "Không thể tải dữ liệu từ Blockchain.";
+    }
+}
 async function addNewCandidate() {
     const name = document.getElementById("candidateNameInput").value;
     const fileInput = document.getElementById("candidateImageInput");
