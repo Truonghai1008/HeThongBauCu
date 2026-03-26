@@ -1,7 +1,7 @@
 let contract;
 let signer;
 let timerInterval;
-const contractAddress = "0x6D0E5F9e05443ea97eb844E25810b62C62CbA9fe"; 
+const contractAddress = "0x427e464fd97975b61C706520E5aB542fcC991A1f"; 
 
 async function init() {
     if (window.ethereum) {
@@ -48,13 +48,15 @@ async function showDashboard(address, name) {
     const adminBtn = document.getElementById("adminQuickBtn");
     const startBtn = document.getElementById("startElectionBtn");
 
-    if (address.toLowerCase() === adminAddr.toLowerCase()) {
+    const isAdmin = address.toLowerCase() === adminAddr.toLowerCase();
+
+    if (isAdmin) {
         if (adminBtn) adminBtn.style.display = "inline-block";
         if (startBtn) startBtn.style.display = "block";
     }
 
     document.getElementById("displayName").innerText = `Xin chào: ${name}`;
-    loadCandidates();
+    loadCandidates(isAdmin); // Truyen quyền admin vao de hien nut xoa
     runCountdown();
 }
 
@@ -64,68 +66,42 @@ async function runCountdown() {
     const updateUI = async () => {
         const timerLabel = document.getElementById("timerDisplay");
         if (!timerLabel) return;
-
         const statusCard = timerLabel.closest('.election-status-card');
 
         try {
             const isStarted = await contract.electionStarted();
-            if (!isStarted) {
-                timerLabel.innerHTML = `<i class="fas fa-pause-circle"></i> Trạng thái: Đang chờ Admin bắt đầu...`;
-                return;
-            }
-
             const endTime = await contract.endTime();
             const now = Math.floor(Date.now() / 1000);
             const timeLeft = Number(endTime) - now;
 
-            if (timeLeft > 0) {
-                const min = Math.floor(timeLeft / 60);
-                const sec = timeLeft % 60;
-                timerLabel.innerHTML = `<i class="fas fa-hourglass-half fa-spin"></i> Thời gian còn lại: ${min}ph : ${sec}s`;
-                
-                if (timeLeft <= 30 && statusCard) {
-                    statusCard.style.background = "linear-gradient(135deg, #f1c40f, #f39c12)";
-                }
-            } else {
-                timerLabel.innerHTML = `<i class="fas fa-calendar-check"></i> Cuộc bầu cử đã kết thúc!`;
-                if (statusCard) statusCard.style.background = "linear-gradient(135deg, #e74c3c, #c0392b)";
-                clearInterval(timerInterval);
+            if (!isStarted || timeLeft <= 0) {
+                timerLabel.innerHTML = isStarted 
+                    ? `<i class="fas fa-calendar-check"></i> Đã kết thúc. Admin có thể bắt đầu đợt mới.`
+                    : `<i class="fas fa-pause-circle"></i> Trạng thái: Đang chờ Admin bắt đầu...`;
+                if (statusCard && isStarted) statusCard.style.background = "linear-gradient(135deg, #e74c3c, #c0392b)";
+                return;
             }
-        } catch (err) {
-            console.error("Lỗi lấy thời gian:", err);
-        }
+
+            const min = Math.floor(timeLeft / 60);
+            const sec = timeLeft % 60;
+            timerLabel.innerHTML = `<i class="fas fa-hourglass-half fa-spin"></i> Thời gian còn lại: ${min}ph : ${sec}s`;
+            
+            if (timeLeft <= 30 && statusCard) {
+                statusCard.style.background = "linear-gradient(135deg, #f1c40f, #f39c12)";
+            }
+        } catch (err) { console.error(err); }
     };
 
     await updateUI();
     timerInterval = setInterval(updateUI, 1000);
 }
 
-async function handleStartElection() {
-    const min = prompt("Nhập số phút bầu cử:", "10");
-    if (!min) return;
-    try {
-        const tx = await contract.startElection(min);
-        alert("Đang kích hoạt...");
-        await tx.wait();
-        location.reload();
-    } catch (e) { alert(e.reason || e.message); }
-}
-
-async function vote(id) {
-    try {
-        const tx = await contract.vote(id);
-        await tx.wait();
-        alert("Thành công!");
-        loadCandidates();
-    } catch (e) { alert(e.reason || "Lỗi: Cuộc bầu cử chưa bắt đầu hoặc đã kết thúc!"); }
-}
-
-async function loadCandidates() {
+async function loadCandidates(isAdmin) {
     const listDiv = document.getElementById("candidateList");
     const resultsDiv = document.getElementById("resultsChart");
     if (!listDiv || !resultsDiv) return;
 
-    listDiv.innerHTML = "<p>Đang tải dữ liệu ứng viên...</p>";
+    listDiv.innerHTML = "<p>Đang tải dữ liệu...</p>";
     
     try {
         const count = await contract.candidatesCount();
@@ -135,7 +111,7 @@ async function loadCandidates() {
 
         for (let i = 1; i <= totalCandidates; i++) {
             const c = await contract.getCandidate(i); 
-            if (c[4]) { 
+            if (c[4]) { // active == true
                 totalVotes += Number(c[2]);
                 candidatesData.push(c);
             }
@@ -147,19 +123,22 @@ async function loadCandidates() {
         for (let candidate of candidatesData) {
             const [id, name, votes] = candidate;
             const percentage = totalVotes > 0 ? (Number(votes) / totalVotes * 100) : 0;
-            
-            // Avatar dạng chữ cái đầu (không dùng ảnh Base64)
             const avatarHTML = `<div style="width:50px; height:50px; border-radius:50%; background:#3498db; color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2rem;">${name.charAt(0).toUpperCase()}</div>`;
 
             const item = document.createElement("div");
             item.className = "candidate-item";
             item.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px;";
+            
+            // Render giao diện có kèm nút Xóa nếu là Admin
             item.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 15px;">
                     ${avatarHTML}
                     <div><strong>${name}</strong><br><small>ID: #${id}</small></div>
                 </div>
-                <button onclick="vote(${id})" style="padding: 5px 15px; cursor: pointer; background:#3498db; color:white; border:none; border-radius:4px;">Bầu chọn</button>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="vote(${id})" style="padding: 5px 15px; cursor: pointer; background:#3498db; color:white; border:none; border-radius:4px;">Bầu</button>
+                    ${isAdmin ? `<button onclick="deleteCandidate(${id})" style="padding: 5px 10px; cursor: pointer; background:#e74c3c; color:white; border:none; border-radius:4px;"><i class="fas fa-trash"></i></button>` : ""}
+                </div>
             `;
             listDiv.appendChild(item);
 
@@ -175,39 +154,48 @@ async function loadCandidates() {
                 </div>`;
             resultsDiv.appendChild(resultRow);
         }
-    } catch (err) {
-        console.error(err);
-        listDiv.innerHTML = "Không thể tải dữ liệu từ Blockchain.";
-    }
+    } catch (err) { console.error(err); }
+}
+
+async function handleStartElection() {
+    const min = prompt("Nhập số phút bầu cử mới:", "10");
+    if (!min) return;
+    try {
+        const tx = await contract.startElection(min);
+        alert("Đang yêu cầu Blockchain xử lý đợt bầu cử mới...");
+        await tx.wait();
+        location.reload();
+    } catch (e) { alert(e.reason || "Lỗi: Cuộc bầu cử cũ chưa kết thúc!"); }
+}
+
+async function vote(id) {
+    try {
+        const tx = await contract.vote(id);
+        await tx.wait();
+        alert("Bầu chọn thành công!");
+        location.reload();
+    } catch (e) { alert(e.reason || "Lỗi: Bạn đã bầu hoặc cuộc bầu cử kết thúc!"); }
 }
 
 async function addNewCandidate() {
     const nameInput = document.getElementById("candidateNameInput");
     if (!nameInput || !nameInput.value) return alert("Nhập tên!");
-
     try {
-        // Gửi chuỗi rỗng cho phần ảnh (cid)
         const tx = await contract.addCandidate(nameInput.value, "");
-        alert("Đang thực hiện giao dịch...");
         await tx.wait();
-        alert("Thêm ứng viên thành công!");
-        nameInput.value = ""; // Xóa text sau khi xong
         location.reload();
-    } catch (e) {
-        alert("Lỗi: " + (e.reason || e.message));
-    }
-}
-
-async function deleteCandidate(id) {
-    if (!confirm("Xóa ứng viên?")) return;
-    try {
-        const tx = await contract.deleteCandidate(id);
-        await tx.wait();
-        loadCandidates();
     } catch (e) { alert(e.reason || e.message); }
 }
 
-// Map functions to window for HTML access
+async function deleteCandidate(id) {
+    if (!confirm("Xác nhận xóa ứng viên này?")) return;
+    try {
+        const tx = await contract.deleteCandidate(id);
+        await tx.wait();
+        location.reload();
+    } catch (e) { alert(e.reason || e.message); }
+}
+
 window.handleAuth = handleAuth;
 window.handleStartElection = handleStartElection;
 window.vote = vote;

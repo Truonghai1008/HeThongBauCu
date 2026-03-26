@@ -37,12 +37,21 @@ contract DecentralizedVoting {
         electionStarted = false;
     }
 
-    // Admin kich hoat bau cu tu Frontend
+    // FIX: Cho phép bắt đầu lại nếu cuộc cũ đã kết thúc
     function startElection(uint256 _durationMinutes) public onlyAdmin {
-        require(!electionStarted, "Cuoc bau cu dang dien ra!");
+        if (electionStarted) {
+            require(block.timestamp > endTime, "Cuoc bau cu hien tai van dang dien ra!");
+        }
+        
         startTime = block.timestamp;
         endTime = block.timestamp + (_durationMinutes * 1 minutes);
         electionStarted = true;
+
+        // Reset trang thai da bau cua tat ca moi nguoi (Khong the lam tren Blockchain vi ton gas)
+        // Thay vao do, chung ta se reset so phieu cua tung ung vien
+        for (uint256 i = 1; i <= candidatesCount; i++) {
+            candidates[i].voteCount = 0;
+        }
     }
 
     function registerVoter(string memory _name) public {
