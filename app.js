@@ -60,13 +60,17 @@ async function showDashboard(address, name) {
 
 async function runCountdown() {
     if (timerInterval) clearInterval(timerInterval);
+    
     timerInterval = setInterval(async () => {
         const timerLabel = document.getElementById("timerDisplay");
         if (!timerLabel) return;
 
+        // Truy cập vào thẻ cha (election-status-card) để đổi màu nền nếu cần
+        const statusCard = timerLabel.closest('.election-status-card');
+
         const isStarted = await contract.electionStarted();
         if (!isStarted) {
-            timerLabel.innerText = "Trạng thái: Đang chờ Admin bắt đầu...";
+            timerLabel.innerHTML = `<i class="fas fa-pause-circle"></i> Trạng thái: Đang chờ Admin bắt đầu...`;
             return;
         }
 
@@ -75,15 +79,26 @@ async function runCountdown() {
         const timeLeft = Number(endTime) - now;
 
         if (timeLeft > 0) {
-            timerLabel.innerText = `Thời gian còn lại: ${Math.floor(timeLeft/60)}p ${timeLeft%60}s`;
-            timerLabel.style.color = "#2ecc71";
+            const min = Math.floor(timeLeft / 60);
+            const sec = timeLeft % 60;
+            
+            // Hiển thị đồng hồ đếm ngược với Icon
+            timerLabel.innerHTML = `<i class="fas fa-hourglass-half fa-spin"></i> Thời gian còn lại: ${min}ph : ${sec}s`;
+            
+            // Nếu còn dưới 30 giây, đổi sang màu vàng cảnh báo
+            if (timeLeft <= 30 && statusCard) {
+                statusCard.style.background = "linear-gradient(135deg, #f1c40f, #f39c12)";
+            }
         } else {
-            timerLabel.innerText = "Cuộc bầu cử đã kết thúc!";
-            timerLabel.style.color = "red";
+            // Khi kết thúc
+            timerLabel.innerHTML = `<i class="fas fa-calendar-check"></i> Cuộc bầu cử đã kết thúc!`;
+            if (statusCard) {
+                statusCard.style.background = "linear-gradient(135deg, #e74c3c, #c0392b)"; // Đổi sang màu đỏ
+            }
             clearInterval(timerInterval);
         }
     }, 1000);
-}
+}git 
 
 async function handleStartElection() {
     const min = prompt("Nhập số phút bầu cử:", "10");

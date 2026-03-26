@@ -50,16 +50,17 @@
                 <h3><i class="fas fa-tools"></i> Quản Trị: Thêm Ứng Cử Viên</h3>
                 <div class="admin-input-group" style="display: flex; flex-direction: column; gap: 10px;">
                     <input type="text" id="candidateNameInput" placeholder="Tên ứng viên mới...">
-                    
-                    <div class="file-input-container">
-                        <label for="candidateImageInput" style="font-size: 0.9em; color: #666;">Chọn ảnh đại diện (Tùy chọn):</label>
-                        <input type="file" id="candidateImageInput" accept="image/*">
-                    </div>
 
                     <button onclick="addNewCandidate()" class="btn-add">
                         <i class="fas fa-plus"></i> Xác Nhận Thêm Ứng Viên
                     </button>
                 </div>
+            </div>
+            <div class="election-status-card">
+                    <div class="status-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="timerDisplay">Đang chờ khởi tạo...</span>
+                    </div>
             </div>
 
             <div class="dashboard-grid">
