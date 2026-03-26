@@ -103,6 +103,19 @@ const contractABI = [
     },
     {
       "inputs": [],
+      "name": "electionStarted",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "endTime",
       "outputs": [
         {
@@ -181,6 +194,19 @@ const contractABI = [
         }
       ],
       "name": "registerVoter",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_durationMinutes",
+          "type": "uint256"
+        }
+      ],
+      "name": "startElection",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

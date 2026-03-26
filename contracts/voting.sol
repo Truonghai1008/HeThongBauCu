@@ -2,7 +2,6 @@
 pragma solidity ^0.8.28;
 
 contract DecentralizedVoting {
-
     struct Candidate {
         uint256 id;
         string name;
@@ -15,6 +14,7 @@ contract DecentralizedVoting {
     uint256 public candidatesCount;
     uint256 public startTime;
     uint256 public endTime;
+    bool public electionStarted;
 
     mapping(uint256 => Candidate) public candidates;
     mapping(address => bool) public hasVoted;
@@ -26,15 +26,23 @@ contract DecentralizedVoting {
     }
 
     modifier onlyDuringElection() {
-        require(block.timestamp >= startTime, "Cuoc bau cu chua bat dau!");
+        require(electionStarted, "Cuoc bau cu chua bat dau!");
+        require(block.timestamp >= startTime, "Chua den gio bau cu!");
         require(block.timestamp <= endTime, "Cuoc bau cu da ket thuc!");
         _;
     }
 
     constructor() {
         admin = msg.sender;
-        startTime = block.timestamp; 
-        endTime = block.timestamp + (2 * 1 minutes);
+        electionStarted = false;
+    }
+
+    // Admin kich hoat bau cu tu Frontend
+    function startElection(uint256 _durationMinutes) public onlyAdmin {
+        require(!electionStarted, "Cuoc bau cu dang dien ra!");
+        startTime = block.timestamp;
+        endTime = block.timestamp + (_durationMinutes * 1 minutes);
+        electionStarted = true;
     }
 
     function registerVoter(string memory _name) public {
@@ -54,7 +62,6 @@ contract DecentralizedVoting {
 
     function vote(uint256 _candidateId) public onlyDuringElection {
         require(!hasVoted[msg.sender], "Ban da bau chon roi!");
-        require(_candidateId > 0 && _candidateId <= candidatesCount, "ID khong hop le!");
         require(candidates[_candidateId].active, "Ung cu vien nay da bi go bo!");
 
         hasVoted[msg.sender] = true;

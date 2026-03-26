@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="timerDisplay" style="font-size: 1.2rem; font-weight: bold; text-align: center; margin: 15px;"></div>
     <div class="container">
         <header class="main-header">
             <i class="fas fa-check-to-slot logo-icon"></i>
@@ -43,6 +44,9 @@
             </div>
 
             <div id="adminSection" style="display: none;" class="admin-panel">
+                <button id="startElectionBtn" onclick="handleStartElection()" style="display:none; background: #e67e22; color: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; cursor: pointer;">
+                    <i class="fas fa-play"></i> BẮT ĐẦU BẦU CỬ
+                </button>
                 <h3><i class="fas fa-tools"></i> Quản Trị: Thêm Ứng Cử Viên</h3>
                 <div class="admin-input-group" style="display: flex; flex-direction: column; gap: 10px;">
                     <input type="text" id="candidateNameInput" placeholder="Tên ứng viên mới...">
