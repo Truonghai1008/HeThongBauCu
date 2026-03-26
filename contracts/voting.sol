@@ -3,30 +3,34 @@ pragma solidity ^0.8.28;
 
 contract DecentralizedVoting {
 
-    // 1. Cấu trúc dữ liệu nâng cấp
     struct Candidate {
         uint256 id;
         string name;
         uint256 voteCount;
-        string imageCID; // Lưu link ảnh (IPFS Hash)
-        bool active;     // Trạng thái: true là hiển thị, false là đã xóa
+        string imageCID; 
+        bool active;     
     }
 
-    // 2. Các biến trạng thái
+    struct Voter {
+        bool isRegistered;
+        bool hasVoted;
+        bytes32 secretHash; // Lưu mã băm ẩn danh của phiếu bầu
+    }
+
     address public admin;
     uint256 public candidatesCount;
 
     mapping(uint256 => Candidate) public candidates;
-    mapping(address => bool) public hasVoted;
+    mapping(address => Voter) public voters;
     mapping(address => string) public voterNames;
+    mapping(address => bool) public whiteList; // Danh sách ví đã qua KYC
 
-    // 3. Sự kiện
     event votedEvent(uint256 indexed _candidateId);
     event candidateAdded(uint256 indexed candidateId, string name, string imageCID);
-    event candidateDeleted(uint256 indexed candidateId); // Sự kiện khi xóa
+    event candidateDeleted(uint256 indexed candidateId);
     event voterRegistered(address indexed voterAddress, string name);
+    event kycApproved(address indexed voterAddress);
 
-    // 4. Quyền truy cập
     modifier onlyAdmin() {
         require(msg.sender == admin, "Chi Admin moi co quyen nay!");
         _;
@@ -34,45 +38,60 @@ contract DecentralizedVoting {
 
     constructor() {
         admin = msg.sender;
+        // Mặc định Admin được vào whitelist
+        whiteList[msg.sender] = true;
     }
 
-    // 5. Các hàm chức năng
+    // --- CHỨC NĂNG KYC ---
+
+    // Admin phê duyệt ví sau khi kiểm tra CCCD/Sinh viên ngoài đời
+    function approveKYC(address _voter) public onlyAdmin {
+        whiteList[_voter] = true;
+        emit kycApproved(_voter);
+    }
 
     function registerVoter(string memory _name) public {
+        require(whiteList[msg.sender], "Vi cua ban chua duoc Admin duyet KYC!");
         require(bytes(_name).length > 0, "Ten khong duoc de trong!");
+        
         voterNames[msg.sender] = _name;
+        voters[msg.sender].isRegistered = true;
+        
         emit voterRegistered(msg.sender, _name);
     }
 
-    // Hàm thêm ứng cử viên: NHẬN THÊM CID ẢNH
+    // --- QUẢN LÝ ỨNG VIÊN ---
+
     function addCandidate(string memory _name, string memory _imageCID) public onlyAdmin {
         candidatesCount++;
-        // Khởi tạo ứng viên với active = true
         candidates[candidatesCount] = Candidate(candidatesCount, _name, 0, _imageCID, true);
         emit candidateAdded(candidatesCount, _name, _imageCID);
     }
 
-    // HÀM XÓA ỨNG VIÊN (Chỉ Admin)
-    // Lưu ý: Chúng ta không dùng lệnh 'delete' vì nó sẽ làm xáo trộn ID. 
-    // Chúng ta chuyển 'active' về false để Frontend biết mà ẩn đi.
     function deleteCandidate(uint256 _candidateId) public onlyAdmin {
         require(_candidateId > 0 && _candidateId <= candidatesCount, "Ung cu vien khong ton tai!");
         candidates[_candidateId].active = false;
         emit candidateDeleted(_candidateId);
     }
 
-    function vote(uint256 _candidateId) public {
-        require(!hasVoted[msg.sender], "Ban da bau chon roi!");
+    // --- BỎ PHIẾU ẨN DANH ---
+
+    // Nhận thêm _secretHash từ Frontend để tăng tính bảo mật
+    function vote(uint256 _candidateId, bytes32 _secretHash) public {
+        require(whiteList[msg.sender], "Ban chua duoc duyet KYC!");
+        require(voters[msg.sender].isRegistered, "Ban phai dang ky ten truoc!");
+        require(!voters[msg.sender].hasVoted, "Ban da bau chon roi!");
         require(_candidateId > 0 && _candidateId <= candidatesCount, "Ung cu vien khong ton tai!");
         require(candidates[_candidateId].active, "Ung cu vien nay da bi go bo!");
 
-        hasVoted[msg.sender] = true;
+        voters[msg.sender].hasVoted = true;
+        voters[msg.sender].secretHash = _secretHash; // Lưu dấu vết đã mã hóa
+        
         candidates[_candidateId].voteCount++;
 
         emit votedEvent(_candidateId);
     }
 
-    // Cập nhật hàm lấy dữ liệu để trả về thêm Image và Trạng thái active
     function getCandidate(uint256 _candidateId) public view returns (uint256, string memory, uint256, string memory, bool) {
         Candidate memory c = candidates[_candidateId];
         return (c.id, c.name, c.voteCount, c.imageCID, c.active);
