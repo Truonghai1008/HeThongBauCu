@@ -1,6 +1,6 @@
 let contract;
 let signer;
-const contractAddress = "0x0EF25B6BC8E0926d739E5e955F52A388464129bf";
+const contractAddress = "0xf5a62EDe1117668D0887356b3805d0411dff7763";
 
 async function init() {
     if (window.ethereum) {
@@ -190,15 +190,24 @@ async function addNewCandidate() {
     
     if (!name) return alert("Vui lòng nhập tên!");
     
-    let imageCID = "";
+    // Nếu có chọn file ảnh
     if (fileInput.files.length > 0) {
         const reader = new FileReader();
         reader.onload = async function(e) {
-            imageCID = e.target.result;
-            await sendCandidateTx(name, imageCID);
+            let rawBase64 = e.target.result;
+            
+            // KIỂM TRA DUNG LƯỢNG (Giới hạn chuỗi Base64)
+            // 5000 ký tự thường tương ứng với file ảnh rất nhỏ (khoảng 3-4KB)
+            if (rawBase64.length > 5000) { 
+                alert("Ảnh quá lớn! Vui lòng chọn ảnh khác nhẹ hơn (dưới 4KB) hoặc để trống ảnh để đảm bảo giao dịch không bị lỗi Gas.");
+                return;
+            }
+            
+            await sendCandidateTx(name, rawBase64);
         };
         reader.readAsDataURL(fileInput.files[0]);
     } else {
+        // Nếu không chọn ảnh, gửi chuỗi rỗng
         await sendCandidateTx(name, "");
     }
 }
