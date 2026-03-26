@@ -98,7 +98,7 @@ async function runCountdown() {
             clearInterval(timerInterval);
         }
     }, 1000);
-}git 
+}
 
 async function handleStartElection() {
     const min = prompt("Nhập số phút bầu cử:", "10");
