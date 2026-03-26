@@ -1,7 +1,7 @@
 let contract;
 let signer;
 let timerInterval;
-const contractAddress = "0x6a1a10AAE5AcA3b671bd2e5609120a813aE93277"; 
+const contractAddress = "0x3C1f6768dEA64B02bf0c3248fb880eFEAeeCcA57"; 
 
 async function init() {
     if (window.ethereum) {
@@ -61,43 +61,46 @@ async function showDashboard(address, name) {
 async function runCountdown() {
     if (timerInterval) clearInterval(timerInterval);
     
-    timerInterval = setInterval(async () => {
+    // Tạo một hàm con để chạy ngay lập tức thay vì đợi 1s
+    const updateUI = async () => {
         const timerLabel = document.getElementById("timerDisplay");
         if (!timerLabel) return;
 
-        // Truy cập vào thẻ cha (election-status-card) để đổi màu nền nếu cần
         const statusCard = timerLabel.closest('.election-status-card');
 
-        const isStarted = await contract.electionStarted();
-        if (!isStarted) {
-            timerLabel.innerHTML = `<i class="fas fa-pause-circle"></i> Trạng thái: Đang chờ Admin bắt đầu...`;
-            return;
-        }
-
-        const endTime = await contract.endTime();
-        const now = Math.floor(Date.now() / 1000);
-        const timeLeft = Number(endTime) - now;
-
-        if (timeLeft > 0) {
-            const min = Math.floor(timeLeft / 60);
-            const sec = timeLeft % 60;
-            
-            // Hiển thị đồng hồ đếm ngược với Icon
-            timerLabel.innerHTML = `<i class="fas fa-hourglass-half fa-spin"></i> Thời gian còn lại: ${min}ph : ${sec}s`;
-            
-            // Nếu còn dưới 30 giây, đổi sang màu vàng cảnh báo
-            if (timeLeft <= 30 && statusCard) {
-                statusCard.style.background = "linear-gradient(135deg, #f1c40f, #f39c12)";
+        try {
+            const isStarted = await contract.electionStarted();
+            if (!isStarted) {
+                timerLabel.innerHTML = `<i class="fas fa-pause-circle"></i> Trạng thái: Đang chờ Admin bắt đầu...`;
+                return;
             }
-        } else {
-            // Khi kết thúc
-            timerLabel.innerHTML = `<i class="fas fa-calendar-check"></i> Cuộc bầu cử đã kết thúc!`;
-            if (statusCard) {
-                statusCard.style.background = "linear-gradient(135deg, #e74c3c, #c0392b)"; // Đổi sang màu đỏ
+
+            const endTime = await contract.endTime();
+            const now = Math.floor(Date.now() / 1000);
+            const timeLeft = Number(endTime) - now;
+
+            if (timeLeft > 0) {
+                const min = Math.floor(timeLeft / 60);
+                const sec = timeLeft % 60;
+                timerLabel.innerHTML = `<i class="fas fa-hourglass-half fa-spin"></i> Thời gian còn lại: ${min}ph : ${sec}s`;
+                
+                if (timeLeft <= 30 && statusCard) {
+                    statusCard.style.background = "linear-gradient(135deg, #f1c40f, #f39c12)";
+                }
+            } else {
+                timerLabel.innerHTML = `<i class="fas fa-calendar-check"></i> Cuộc bầu cử đã kết thúc!`;
+                if (statusCard) statusCard.style.background = "linear-gradient(135deg, #e74c3c, #c0392b)";
+                clearInterval(timerInterval);
             }
-            clearInterval(timerInterval);
+        } catch (err) {
+            console.error("Lỗi lấy thời gian:", err);
         }
-    }, 1000);
+    };
+
+    // Chạy ngay lần đầu tiên
+    await updateUI();
+    // Sau đó mới chạy lặp lại mỗi giây
+    timerInterval = setInterval(updateUI, 1000);
 }
 
 async function handleStartElection() {
