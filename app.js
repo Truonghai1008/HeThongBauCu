@@ -1,7 +1,7 @@
 let contract;
 let signer;
 let timerInterval;
-const contractAddress = "0x427e464fd97975b61C706520E5aB542fcC991A1f"; 
+const contractAddress = "0x59068D1f401eC8c2509C9907D7cc8af0996fA19D"; 
 
 async function init() {
     if (window.ethereum) {

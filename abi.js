@@ -103,6 +103,19 @@ const contractABI = [
     },
     {
       "inputs": [],
+      "name": "electionRound",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "electionStarted",
       "outputs": [
         {
@@ -174,12 +187,12 @@ const contractABI = [
           "type": "address"
         }
       ],
-      "name": "hasVoted",
+      "name": "lastVotedRound",
       "outputs": [
         {
-          "internalType": "bool",
+          "internalType": "uint256",
           "name": "",
-          "type": "bool"
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
