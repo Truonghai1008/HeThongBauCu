@@ -1,7 +1,7 @@
 let contract;
 let signer;
 let timerInterval;
-const contractAddress = "0x7bfEfEd596e398C162989589f6e4632CC9c0d540"; 
+const contractAddress = "0x4E1d49519f5d5cb49C22Abc335F781e1211E7b56"; 
 
 async function init() {
     if (window.ethereum) {
@@ -55,14 +55,13 @@ async function showDashboard(address, name) {
         if (adminBtn) adminBtn.style.display = "inline-block";
         if (startBtn) startBtn.style.display = "block";
 
-        // Kiểm tra trạng thái để hiển thị nút Dừng ngay lập tức
         try {
             const isStarted = await contract.electionStarted();
             const endTime = await contract.endTime();
             const now = Math.floor(Date.now() / 1000);
             
             if (stopBtn) {
-                // Chỉ hiện nút dừng nếu cuộc bầu cử đang chạy và chưa hết giờ
+                // Hiện nút dừng nếu đang trong thời gian bầu cử
                 stopBtn.style.display = (isStarted && Number(endTime) > now) ? "block" : "none";
             }
         } catch (err) { console.error(err); }
@@ -171,6 +170,7 @@ async function loadCandidates(isAdmin) {
             const item = document.createElement("div");
             item.className = "candidate-item";
             item.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px;";
+            
             item.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 15px;">
                     ${avatarHTML}
@@ -178,7 +178,10 @@ async function loadCandidates(isAdmin) {
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <button onclick="vote(${id})" style="padding: 5px 15px; cursor: pointer; background:#3498db; color:white; border:none; border-radius:4px;">Bầu</button>
-                    ${isAdmin ? `<button onclick="deleteCandidate(${id})" style="padding: 5px 10px; cursor: pointer; background:#e74c3c; color:white; border:none; border-radius:4px;"><i class="fas fa-trash"></i></button>` : ""}
+                    ${isAdmin ? `
+                        <button onclick="openEditModal(${id}, '${name}')" style="padding: 5px 10px; cursor: pointer; background:#f1c40f; color:white; border:none; border-radius:4px;"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteCandidate(${id})" style="padding: 5px 10px; cursor: pointer; background:#e74c3c; color:white; border:none; border-radius:4px;"><i class="fas fa-trash"></i></button>
+                    ` : ""}
                 </div>
             `;
             listDiv.appendChild(item);
@@ -248,6 +251,28 @@ async function deleteCandidate(id) {
     } catch (e) { alert(e.reason || e.message); }
 }
 
+function openEditModal(id, currentName) {
+    document.getElementById("editCandidateId").value = id;
+    document.getElementById("editCandidateName").value = currentName;
+    document.getElementById("editCandidateSection").style.display = "block";
+}
+
+async function saveCandidateEdit() {
+    const id = document.getElementById("editCandidateId").value;
+    const newName = document.getElementById("editCandidateName").value;
+    if (!newName) return alert("Vui lòng nhập tên!");
+
+    try {
+        const tx = await contract.updateCandidate(id, newName, ""); 
+        alert("Đang cập nhật thông tin...");
+        await tx.wait();
+        alert("Cập nhật thành công!");
+        location.reload();
+    } catch (e) {
+        alert(e.reason || "Lỗi khi cập nhật!");
+    }
+}
+
 function formatTimestamp(ts) {
     const date = new Date(Number(ts) * 1000);
     return date.toLocaleString('vi-VN');
@@ -255,10 +280,12 @@ function formatTimestamp(ts) {
 
 window.handleAuth = handleAuth;
 window.handleStartElection = handleStartElection;
-window.handleEndElection = handleEndElection; // Đã thêm
+window.handleEndElection = handleEndElection;
 window.vote = vote;
 window.addNewCandidate = addNewCandidate;
 window.deleteCandidate = deleteCandidate;
+window.openEditModal = openEditModal;
+window.saveCandidateEdit = saveCandidateEdit;
 window.toggleAdminPanel = () => {
     const p = document.getElementById("adminSection");
     p.style.display = p.style.display === "none" ? "block" : "none";

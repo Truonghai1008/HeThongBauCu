@@ -33,14 +33,14 @@ contract DecentralizedVoting {
     VoteRecord[] public voteHistory;
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, "Admin only!");
+        require(msg.sender == admin, "Chi danh cho Admin!");
         _;
     }
 
     modifier onlyDuringElection() {
-        require(electionStarted, "Election not started!");
-        require(block.timestamp >= startTime, "Too early!");
-        require(block.timestamp <= endTime, "Election ended!");
+        require(electionStarted, "Cuoc bau cu chua bat dau!");
+        require(block.timestamp >= startTime, "Chua den thoi gian bau cu!");
+        require(block.timestamp <= endTime, "Thoi gian bau cu da ket thuc!");
         _;
     }
 
@@ -53,7 +53,7 @@ contract DecentralizedVoting {
     // Hàm bắt đầu đợt bầu cử mới
     function startElection(uint256 _durationMinutes) public onlyAdmin {
         if (electionStarted) {
-            require(block.timestamp > endTime, "Current round not finished!");
+            require(block.timestamp > endTime, "Dot bau cu hien tai chua ket thuc!");
         }
         
         electionRound++; // Tăng đợt bầu cử để reset lượt bầu của mọi người
@@ -69,13 +69,13 @@ contract DecentralizedVoting {
 
     // --- HÀM MỚI THÊM: Dừng cuộc bầu cử ngay lập tức ---
     function endElection() public onlyAdmin {
-        require(electionStarted, "Election not started!");
+        require(electionStarted, "Cuoc bau cu chua duoc bat dau!");
         electionStarted = false;
         endTime = block.timestamp; // Chốt thời gian kết thúc là bây giờ
     }
 
     function registerVoter(string memory _name) public {
-        require(bytes(_name).length > 0, "Name empty!");
+        require(bytes(_name).length > 0, "Ten khong duoc de trong!");
         voterNames[msg.sender] = _name;
     }
 
@@ -85,14 +85,14 @@ contract DecentralizedVoting {
     }
 
     function deleteCandidate(uint256 _candidateId) public onlyAdmin {
-        require(_candidateId > 0 && _candidateId <= candidatesCount, "Not exist!");
+        require(_candidateId > 0 && _candidateId <= candidatesCount, "Ung vien khong ton tai!");
         candidates[_candidateId].active = false;
     }
 
     function vote(uint256 _candidateId) public onlyDuringElection {
         // Kiểm tra ví đã bầu ở đợt này chưa
-        require(lastVotedRound[msg.sender] < electionRound, "Already voted this round!");
-        require(candidates[_candidateId].active, "Candidate deleted!");
+        require(lastVotedRound[msg.sender] < electionRound, "Ban da thuc hien bau chon trong dot nay roi!");
+        require(candidates[_candidateId].active, "Ung vien nay da bi xoa!");
 
         lastVotedRound[msg.sender] = electionRound;
         candidates[_candidateId].voteCount++;
@@ -111,4 +111,13 @@ contract DecentralizedVoting {
     function getVoteHistoryCount() public view returns (uint256) {
         return voteHistory.length;
     }
+    // Hàm cập nhật thông tin ứng viên
+    function updateCandidate(uint256 _id, string memory _newName, string memory _newImageCID) public onlyAdmin {
+    require(_id > 0 && _id <= candidatesCount, "Ung vien khong ton tai!");
+    require(candidates[_id].active, "Ung vien nay da bi xoa!");
+    require(bytes(_newName).length > 0, "Ten khong duoc de trong!");
+
+    candidates[_id].name = _newName;
+    candidates[_id].imageCID = _newImageCID;
+}
 }

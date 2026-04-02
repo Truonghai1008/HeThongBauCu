@@ -101,5 +101,15 @@
 
     <script src="abi.js"></script>
     <script src="app.js"></script>
+    <div id="editCandidateSection" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:12px; box-shadow:0 0 20px rgba(0,0,0,0.2); z-index:1000; width:300px;">
+        <h4 style="margin-top:0;">Chỉnh sửa ứng viên</h4>
+        <input type="hidden" id="editCandidateId">
+        <label>Tên mới:</label>
+        <input type="text" id="editCandidateName" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #ddd; border-radius:4px;">
+        <div style="display:flex; gap:10px;">
+            <button onclick="saveCandidateEdit()" style="flex:1; background:#2ecc71; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Lưu</button>
+            <button onclick="document.getElementById('editCandidateSection').style.display='none'" style="flex:1; background:#95a5a6; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Hủy</button>
+        </div>
+    </div>
 </body>
 </html>
