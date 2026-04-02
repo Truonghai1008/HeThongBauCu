@@ -1,7 +1,7 @@
 let contract;
 let signer;
 let timerInterval;
-const contractAddress = "0x4E1d49519f5d5cb49C22Abc335F781e1211E7b56"; 
+const contractAddress = "0x4AB354388bEb70843b345e219bdc52840D6e2613"; 
 
 async function init() {
     if (window.ethereum) {
@@ -48,19 +48,18 @@ async function showDashboard(address, name) {
     const adminBtn = document.getElementById("adminQuickBtn");
     const startBtn = document.getElementById("startElectionBtn");
     const stopBtn = document.getElementById("stopElectionBtn");
-    const roleLabel = document.getElementById("userRole"); // Lấy thẻ Role
+    const roleLabel = document.getElementById("userRole"); 
 
     const isAdmin = address.toLowerCase() === adminAddr.toLowerCase();
 
-    // --- XỬ LÝ HIỂN THỊ ROLE ---
     if (roleLabel) {
         if (isAdmin) {
             roleLabel.innerText = "QUẢN TRỊ VIÊN (ADMIN)";
-            roleLabel.style.background = "#e74c3c"; // Màu đỏ cho Admin
+            roleLabel.style.background = "#e74c3c"; 
             roleLabel.style.color = "white";
         } else {
             roleLabel.innerText = "NGƯỜI BẦU CHỌN (VOTER)";
-            roleLabel.style.background = "#2ecc71"; // Màu xanh cho Voter
+            roleLabel.style.background = "#2ecc71"; 
             roleLabel.style.color = "white";
         }
     }
@@ -76,6 +75,14 @@ async function showDashboard(address, name) {
             if (stopBtn) {
                 stopBtn.style.display = (isStarted && Number(endTime) > now) ? "block" : "none";
             }
+
+            // Cập nhật UI Whitelist cho Admin
+            const isPrivateMode = await contract.isPrivate();
+            const modeSelect = document.getElementById("electionModeSelect");
+            const whitelistMgmt = document.getElementById("whitelistManager");
+            if (modeSelect) modeSelect.value = isPrivateMode.toString();
+            if (whitelistMgmt) whitelistMgmt.style.display = isPrivateMode ? "block" : "none";
+
         } catch (err) { console.error(err); }
     }
 
@@ -213,6 +220,30 @@ async function loadCandidates(isAdmin) {
     } catch (err) { console.error(err); }
 }
 
+// --- CÁC HÀM MỚI CHO WHITELIST & MODE ---
+async function changeElectionMode() {
+    const isPrivate = document.getElementById("electionModeSelect").value === "true";
+    try {
+        const tx = await contract.setElectionMode(isPrivate);
+        alert("Đang cập nhật chế độ...");
+        await tx.wait();
+        alert("Thành công!");
+        location.reload();
+    } catch (e) { alert(e.reason || "Lỗi giao dịch!"); }
+}
+
+async function addVoterToWhitelist() {
+    const addr = document.getElementById("whitelistAddressInput").value;
+    if (!ethers.isAddress(addr)) return alert("Ví không hợp lệ!");
+    try {
+        const tx = await contract.addToWhitelist(addr);
+        alert("Đang xử lý...");
+        await tx.wait();
+        alert("Đã thêm vào Whitelist!");
+        location.reload();
+    } catch (e) { alert(e.reason || "Lỗi!"); }
+}
+
 async function handleStartElection() {
     const min = prompt("Nhập số phút bầu cử mới:", "10");
     if (!min) return;
@@ -241,7 +272,7 @@ async function vote(id) {
         await tx.wait();
         alert("Bầu chọn thành công!");
         location.reload();
-    } catch (e) { alert(e.reason || "Lỗi: Bạn đã bầu hoặc cuộc bầu cử kết thúc!"); }
+    } catch (e) { alert(e.reason || "Lỗi: Bạn không có quyền hoặc đã bầu!"); }
 }
 
 async function addNewCandidate() {
@@ -280,9 +311,7 @@ async function saveCandidateEdit() {
         await tx.wait();
         alert("Cập nhật thành công!");
         location.reload();
-    } catch (e) {
-        alert(e.reason || "Lỗi khi cập nhật!");
-    }
+    } catch (e) { alert(e.reason || "Lỗi khi cập nhật!"); }
 }
 
 function formatTimestamp(ts) {
@@ -298,6 +327,8 @@ window.addNewCandidate = addNewCandidate;
 window.deleteCandidate = deleteCandidate;
 window.openEditModal = openEditModal;
 window.saveCandidateEdit = saveCandidateEdit;
+window.changeElectionMode = changeElectionMode;
+window.addVoterToWhitelist = addVoterToWhitelist;
 window.toggleAdminPanel = () => {
     const p = document.getElementById("adminSection");
     p.style.display = p.style.display === "none" ? "block" : "none";
