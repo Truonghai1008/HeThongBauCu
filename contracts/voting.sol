@@ -10,26 +10,37 @@ contract DecentralizedVoting {
         bool active;     
     }
 
+    // Cấu trúc lưu thông tin phiếu bầu để tạo danh sách Hash
+    struct VoteRecord {
+        address voter;
+        uint256 candidateId;
+        uint256 timestamp;
+        uint256 round;
+    }
+
     address public admin;
     uint256 public candidatesCount;
     uint256 public startTime;
     uint256 public endTime;
     bool public electionStarted;
-    uint256 public electionRound; // Theo dõi đợt bầu cử
+    uint256 public electionRound; // Theo dõi đợt bầu cử hiện tại
 
     mapping(uint256 => Candidate) public candidates;
-    mapping(address => uint256) public lastVotedRound; // Lưu đợt mà ví đã bầu
+    mapping(address => uint256) public lastVotedRound; // Lưu số đợt mà ví đã bầu
     mapping(address => string) public voterNames;
+    
+    // Mảng lưu lịch sử tất cả các phiếu bầu từ trước đến nay
+    VoteRecord[] public voteHistory;
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, "Chỉ Admin mới có quyền này!");
+        require(msg.sender == admin, "Admin only!");
         _;
     }
 
     modifier onlyDuringElection() {
-        require(electionStarted, "Cuộc bầu cử chưa bắt đầu!");
-        require(block.timestamp >= startTime, "Chưa đến giờ!");
-        require(block.timestamp <= endTime, "Đã kết thúc !");
+        require(electionStarted, "Election not started!");
+        require(block.timestamp >= startTime, "Too early!");
+        require(block.timestamp <= endTime, "Election ended!");
         _;
     }
 
@@ -39,9 +50,10 @@ contract DecentralizedVoting {
         electionStarted = false;
     }
 
+    // Hàm bắt đầu đợt bầu cử mới
     function startElection(uint256 _durationMinutes) public onlyAdmin {
         if (electionStarted) {
-            require(block.timestamp > endTime, "Đợt bầu cử hiện tại chưa kết thúc!");
+            require(block.timestamp > endTime, "Current round not finished!");
         }
         
         electionRound++; // Tăng đợt bầu cử để reset lượt bầu của mọi người
@@ -49,14 +61,14 @@ contract DecentralizedVoting {
         endTime = block.timestamp + (_durationMinutes * 1 minutes);
         electionStarted = true;
 
-        // Reset phiếu của các ứng viên hiện có về 0 cho đợt mới
+        // Reset số phiếu của các ứng viên hiện có về 0 cho đợt mới
         for (uint256 i = 1; i <= candidatesCount; i++) {
             candidates[i].voteCount = 0;
         }
     }
 
     function registerVoter(string memory _name) public {
-        require(bytes(_name).length > 0, "Tên không được để trống!");
+        require(bytes(_name).length > 0, "Name empty!");
         voterNames[msg.sender] = _name;
     }
 
@@ -66,21 +78,30 @@ contract DecentralizedVoting {
     }
 
     function deleteCandidate(uint256 _candidateId) public onlyAdmin {
-        require(_candidateId > 0 && _candidateId <= candidatesCount, "Không tồn tại!");
+        require(_candidateId > 0 && _candidateId <= candidatesCount, "Not exist!");
         candidates[_candidateId].active = false;
     }
 
     function vote(uint256 _candidateId) public onlyDuringElection {
-        require(lastVotedRound[msg.sender] < electionRound, "Bạn đã bầu ở đợt này rồi!");
-        require(candidates[_candidateId].active, "Ứng cử viên đã bị xóa!");
+        // Kiểm tra ví đã bầu ở đợt này chưa
+        require(lastVotedRound[msg.sender] < electionRound, "Already voted this round!");
+        require(candidates[_candidateId].active, "Candidate deleted!");
 
         lastVotedRound[msg.sender] = electionRound;
         candidates[_candidateId].voteCount++;
+
+        // Lưu bản ghi vào lịch sử
+        voteHistory.push(VoteRecord(msg.sender, _candidateId, block.timestamp, electionRound));
     }
 
-    // Hàm này giúp app.js lấy dữ liệu ứng viên (quan trọng)
+    // Lấy dữ liệu ứng viên cho Frontend
     function getCandidate(uint256 _candidateId) public view returns (uint256, string memory, uint256, string memory, bool) {
         Candidate memory c = candidates[_candidateId];
         return (c.id, c.name, c.voteCount, c.imageCID, c.active);
+    }
+
+    // Lấy tổng số phiếu bầu đã thực hiện trong lịch sử
+    function getVoteHistoryCount() public view returns (uint256) {
+        return voteHistory.length;
     }
 }

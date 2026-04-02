@@ -1,7 +1,7 @@
 let contract;
 let signer;
 let timerInterval;
-const contractAddress = "0x59068D1f401eC8c2509C9907D7cc8af0996fA19D"; 
+const contractAddress = "0xCAa1C7c84cC8095E977da1DaA9c57ce25C9c06a5"; 
 
 async function init() {
     if (window.ethereum) {
@@ -40,6 +40,7 @@ async function handleAuth() {
     location.reload();
 }
 
+// CẬP NHẬT: Hàm hiển thị Dashboard gọi thêm loadVoteHistory
 async function showDashboard(address, name) {
     document.getElementById("authSection").style.display = "none";
     document.getElementById("mainDashboard").style.display = "block";
@@ -56,7 +57,8 @@ async function showDashboard(address, name) {
     }
 
     document.getElementById("displayName").innerText = `Xin chào: ${name}`;
-    loadCandidates(isAdmin); // Truyen quyền admin vao de hien nut xoa
+    loadCandidates(isAdmin); 
+    loadVoteHistory(); // <-- GỌI HÀM DANH SÁCH HASH TẠI ĐÂY
     runCountdown();
 }
 
@@ -96,6 +98,46 @@ async function runCountdown() {
     timerInterval = setInterval(updateUI, 1000);
 }
 
+// THÊM MỚI: Hàm tải danh sách Hash từ Blockchain
+async function loadVoteHistory() {
+    const historyDiv = document.getElementById("voteHistoryList");
+    if (!historyDiv) return;
+
+    try {
+        const count = await contract.getVoteHistoryCount();
+        const total = Number(count);
+        historyDiv.innerHTML = "";
+
+        if (total === 0) {
+            historyDiv.innerHTML = "<p>Chưa có phiếu bầu nào được ghi lại.</p>";
+            return;
+        }
+
+        // Hiển thị tối đa 10 phiếu bầu gần nhất
+        for (let i = total - 1; i >= Math.max(0, total - 10); i--) {
+            const record = await contract.voteHistory(i);
+            const [voter, candidateId, timestamp, round] = record;
+            
+            // Tạo mã Hash minh họa bằng Keccak256
+            const fakeHash = ethers.keccak256(ethers.toUtf8Bytes(voter + timestamp.toString() + round.toString()));
+
+            const row = document.createElement("div");
+            row.style = "padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; font-family: monospace; background: white; margin-bottom: 5px; border-radius: 5px;";
+            row.innerHTML = `
+                <div style="color: #2ecc71; word-break: break-all;"><strong>Hash:</strong> ${fakeHash}</div>
+                <div style="color: #7f8c8d; margin-top: 5px;">
+                    Ví: ${voter.substring(0, 8)}... | 
+                    Ứng viên ID: ${candidateId} | 
+                    Đợt: ${round}
+                </div>
+            `;
+            historyDiv.appendChild(row);
+        }
+    } catch (err) {
+        console.error("Lỗi tải lịch sử Hash:", err);
+    }
+}
+
 async function loadCandidates(isAdmin) {
     const listDiv = document.getElementById("candidateList");
     const resultsDiv = document.getElementById("resultsChart");
@@ -111,7 +153,7 @@ async function loadCandidates(isAdmin) {
 
         for (let i = 1; i <= totalCandidates; i++) {
             const c = await contract.getCandidate(i); 
-            if (c[4]) { // active == true
+            if (c[4]) { 
                 totalVotes += Number(c[2]);
                 candidatesData.push(c);
             }
@@ -129,7 +171,6 @@ async function loadCandidates(isAdmin) {
             item.className = "candidate-item";
             item.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px;";
             
-            // Render giao diện có kèm nút Xóa nếu là Admin
             item.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 15px;">
                     ${avatarHTML}
@@ -162,7 +203,7 @@ async function handleStartElection() {
     if (!min) return;
     try {
         const tx = await contract.startElection(min);
-        alert("Đang yêu cầu Blockchain xử lý đợt bầu cử mới...");
+        alert("Đang kích hoạt đợt mới...");
         await tx.wait();
         location.reload();
     } catch (e) { alert(e.reason || "Lỗi: Cuộc bầu cử cũ chưa kết thúc!"); }
