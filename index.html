@@ -35,10 +35,15 @@
         <div id="mainDashboard" style="display: none;">
             <div class="user-bar">
                 <span id="displayRole" class="badge"></span>
-                <span id="displayName" class="user-name"></span>
-                <div class="user-info" style="margin-bottom: 20px; padding: 10px; background: #f0f2f5; border-radius: 8px;">
-                    <span id="displayName" style="font-weight: bold; font-size: 1.1rem;">Xin chào: ...</span>
-                    <span id="userRole" style="margin-left: 10px; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;"></span>
+                <div class="user-info" style="margin-bottom: 20px; padding: 15px; background: #ffffff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; border: 1px solid #e0e0e0;">
+                    <i class="fas fa-user-circle" style="font-size: 1.5rem; color: #3498db; margin-right: 10px;"></i>
+                    
+                    <span id="displayName" style="font-weight: bold; font-size: 1.1rem; color: #2c3e50;">
+                        Xin chào: ...
+                    </span>
+
+                    <span id="userRole" style="margin-left: 12px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                        </span>
                 </div>
                 
                 <button id="adminQuickBtn" onclick="toggleAdminPanel()" class="btn-admin-toggle" style="display: none;">
