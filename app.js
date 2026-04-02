@@ -47,9 +47,23 @@ async function showDashboard(address, name) {
     const adminAddr = await contract.admin();
     const adminBtn = document.getElementById("adminQuickBtn");
     const startBtn = document.getElementById("startElectionBtn");
-    const stopBtn = document.getElementById("stopElectionBtn"); 
+    const stopBtn = document.getElementById("stopElectionBtn");
+    const roleLabel = document.getElementById("userRole"); // Lấy thẻ Role
 
     const isAdmin = address.toLowerCase() === adminAddr.toLowerCase();
+
+    // --- XỬ LÝ HIỂN THỊ ROLE ---
+    if (roleLabel) {
+        if (isAdmin) {
+            roleLabel.innerText = "QUẢN TRỊ VIÊN (ADMIN)";
+            roleLabel.style.background = "#e74c3c"; // Màu đỏ cho Admin
+            roleLabel.style.color = "white";
+        } else {
+            roleLabel.innerText = "NGƯỜI BẦU CHỌN (VOTER)";
+            roleLabel.style.background = "#2ecc71"; // Màu xanh cho Voter
+            roleLabel.style.color = "white";
+        }
+    }
 
     if (isAdmin) {
         if (adminBtn) adminBtn.style.display = "inline-block";
@@ -59,9 +73,7 @@ async function showDashboard(address, name) {
             const isStarted = await contract.electionStarted();
             const endTime = await contract.endTime();
             const now = Math.floor(Date.now() / 1000);
-            
             if (stopBtn) {
-                // Hiện nút dừng nếu đang trong thời gian bầu cử
                 stopBtn.style.display = (isStarted && Number(endTime) > now) ? "block" : "none";
             }
         } catch (err) { console.error(err); }
