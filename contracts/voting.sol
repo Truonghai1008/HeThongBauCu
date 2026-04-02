@@ -22,14 +22,14 @@ contract DecentralizedVoting {
     mapping(address => string) public voterNames;
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, "Chi Admin moi co quyen nay!");
+        require(msg.sender == admin, "Chỉ Admin mới có quyền này!");
         _;
     }
 
     modifier onlyDuringElection() {
-        require(electionStarted, "Cuoc bau cu chua bat dau!");
-        require(block.timestamp >= startTime, "Chua den gio!");
-        require(block.timestamp <= endTime, "Da ket thuc!");
+        require(electionStarted, "Cuộc bầu cử chưa bắt đầu!");
+        require(block.timestamp >= startTime, "Chưa đến giờ!");
+        require(block.timestamp <= endTime, "Đã kết thúc !");
         _;
     }
 
@@ -41,7 +41,7 @@ contract DecentralizedVoting {
 
     function startElection(uint256 _durationMinutes) public onlyAdmin {
         if (electionStarted) {
-            require(block.timestamp > endTime, "Dot bau cu hien tai chua ket thuc!");
+            require(block.timestamp > endTime, "Đợt bầu cử hiện tại chưa kết thúc!");
         }
         
         electionRound++; // Tăng đợt bầu cử để reset lượt bầu của mọi người
@@ -56,7 +56,7 @@ contract DecentralizedVoting {
     }
 
     function registerVoter(string memory _name) public {
-        require(bytes(_name).length > 0, "Ten khong duoc de trong!");
+        require(bytes(_name).length > 0, "Tên không được để trống!");
         voterNames[msg.sender] = _name;
     }
 
@@ -66,13 +66,13 @@ contract DecentralizedVoting {
     }
 
     function deleteCandidate(uint256 _candidateId) public onlyAdmin {
-        require(_candidateId > 0 && _candidateId <= candidatesCount, "Khong ton tai!");
+        require(_candidateId > 0 && _candidateId <= candidatesCount, "Không tồn tại!");
         candidates[_candidateId].active = false;
     }
 
     function vote(uint256 _candidateId) public onlyDuringElection {
-        require(lastVotedRound[msg.sender] < electionRound, "Ban da bau o dot nay roi!");
-        require(candidates[_candidateId].active, "Ung vien da bi xoa!");
+        require(lastVotedRound[msg.sender] < electionRound, "Bạn đã bầu ở đợt này rồi!");
+        require(candidates[_candidateId].active, "Ứng cử viên đã bị xóa!");
 
         lastVotedRound[msg.sender] = electionRound;
         candidates[_candidateId].voteCount++;
