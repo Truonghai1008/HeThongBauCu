@@ -43,21 +43,26 @@
             </div>
 
             <div id="adminSection" style="display: none;" class="admin-panel">
-                <button id="stopElectionBtn" onclick="handleEndElection()" 
-                    style="display:none; width:100%; padding:12px; background: linear-gradient(135deg, #e74c3c, #c0392b); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:10px; transition: 0.3s;">
-                    <i class="fas fa-stop-circle"></i> Dừng cuộc bầu cử ngay lập tức
-                </button>
-                <button id="startElectionBtn" onclick="handleStartElection()" style="display:none; background: #e67e22; color: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; cursor: pointer;">
-                    <i class="fas fa-play"></i> BẮT ĐẦU BẦU CỬ
-                </button>
-                <h3><i class="fas fa-tools"></i> Quản Trị: Thêm Ứng Cử Viên</h3>
-                <div class="admin-input-group" style="display: flex; flex-direction: column; gap: 10px;">
-                    <input type="text" id="candidateNameInput" placeholder="Tên ứng viên mới...">
-                    <button onclick="addNewCandidate()" class="btn-add">
-                        <i class="fas fa-plus"></i> Xác Nhận Thêm Ứng Viên
-                    </button>
-                </div>
-            </div>
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <button id="startElectionBtn" onclick="handleStartElection()" 
+            style="display:none; flex: 1; background: #e67e22; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            <i class="fas fa-play"></i> BẮT ĐẦU BẦU CỬ
+        </button>
+
+        <button id="stopElectionBtn" onclick="handleEndElection()" 
+            style="display:none; flex: 1; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            <i class="fas fa-stop-circle"></i> DỪNG NGAY
+        </button>
+    </div>
+
+    <h3><i class="fas fa-tools"></i> Quản Trị: Thêm Ứng Cử Viên</h3>
+    <div class="admin-input-group" style="display: flex; flex-direction: column; gap: 10px;">
+        <input type="text" id="candidateNameInput" placeholder="Tên ứng viên mới...">
+        <button onclick="addNewCandidate()" class="btn-add">
+            <i class="fas fa-plus"></i> Xác Nhận Thêm Ứng Viên
+        </button>
+    </div>
+</div>
             <div class="election-status-card">
                     <div class="status-info">
                         <i class="fas fa-info-circle"></i>
