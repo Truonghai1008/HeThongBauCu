@@ -129,6 +129,13 @@ const contractABI = [
     },
     {
       "inputs": [],
+      "name": "endElection",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "endTime",
       "outputs": [
         {

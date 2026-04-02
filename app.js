@@ -1,7 +1,7 @@
 let contract;
 let signer;
 let timerInterval;
-const contractAddress = "0xD8ff6ED3d81FE0F9ea84363f6a7219e35b432e4C"; 
+const contractAddress = "0x7bfEfEd596e398C162989589f6e4632CC9c0d540"; 
 
 async function init() {
     if (window.ethereum) {
@@ -40,7 +40,6 @@ async function handleAuth() {
     location.reload();
 }
 
-// CẬP NHẬT: Hàm hiển thị Dashboard gọi thêm loadVoteHistory
 async function showDashboard(address, name) {
     document.getElementById("authSection").style.display = "none";
     document.getElementById("mainDashboard").style.display = "block";
@@ -48,17 +47,30 @@ async function showDashboard(address, name) {
     const adminAddr = await contract.admin();
     const adminBtn = document.getElementById("adminQuickBtn");
     const startBtn = document.getElementById("startElectionBtn");
+    const stopBtn = document.getElementById("stopElectionBtn"); 
 
     const isAdmin = address.toLowerCase() === adminAddr.toLowerCase();
 
     if (isAdmin) {
         if (adminBtn) adminBtn.style.display = "inline-block";
         if (startBtn) startBtn.style.display = "block";
+
+        // Kiểm tra trạng thái để hiển thị nút Dừng ngay lập tức
+        try {
+            const isStarted = await contract.electionStarted();
+            const endTime = await contract.endTime();
+            const now = Math.floor(Date.now() / 1000);
+            
+            if (stopBtn) {
+                // Chỉ hiện nút dừng nếu cuộc bầu cử đang chạy và chưa hết giờ
+                stopBtn.style.display = (isStarted && Number(endTime) > now) ? "block" : "none";
+            }
+        } catch (err) { console.error(err); }
     }
 
     document.getElementById("displayName").innerText = `Xin chào: ${name}`;
     loadCandidates(isAdmin); 
-    loadVoteHistory(); // <-- GỌI HÀM DANH SÁCH HASH TẠI ĐÂY
+    loadVoteHistory(); 
     runCountdown();
 }
 
@@ -98,7 +110,6 @@ async function runCountdown() {
     timerInterval = setInterval(updateUI, 1000);
 }
 
-// THÊM MỚI: Hàm tải danh sách Hash từ Blockchain
 async function loadVoteHistory() {
     const historyDiv = document.getElementById("voteHistoryList");
     if (!historyDiv) return;
@@ -111,30 +122,21 @@ async function loadVoteHistory() {
         for (let i = total - 1; i >= Math.max(0, total - 10); i--) {
             const record = await contract.voteHistory(i);
             const [voter, candidateId, timestamp, round] = record;
-            
-            // Chuyển đổi timestamp sang ngày giờ đọc được
             const timeString = formatTimestamp(timestamp); 
-
             const fakeHash = ethers.keccak256(ethers.toUtf8Bytes(voter + timestamp.toString() + round.toString()));
 
             const row = document.createElement("div");
             row.style = "padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; font-family: monospace; background: white; margin-bottom: 5px; border-radius: 5px;";
-            
-            // THÊM DÒNG THỜI GIAN VÀO ĐÂY
             row.innerHTML = `
                 <div style="color: #2ecc71; word-break: break-all;"><strong>Hash:</strong> ${fakeHash}</div>
                 <div style="color: #7f8c8d; margin-top: 5px;">
                     <i class="far fa-clock"></i> <strong>Thời gian:</strong> ${timeString} <br>
-                    Ví: ${voter.substring(0, 8)}... | 
-                    Ứng viên ID: ${candidateId} | 
-                    Đợt: ${round}
+                    Ví: ${voter.substring(0, 8)}... | Ứng viên ID: ${candidateId} | Đợt: ${round}
                 </div>
             `;
             historyDiv.appendChild(row);
         }
-    } catch (err) {
-        console.error("Lỗi tải lịch sử Hash:", err);
-    }
+    } catch (err) { console.error("Lỗi tải lịch sử Hash:", err); }
 }
 
 async function loadCandidates(isAdmin) {
@@ -169,7 +171,6 @@ async function loadCandidates(isAdmin) {
             const item = document.createElement("div");
             item.className = "candidate-item";
             item.style = "display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 8px;";
-            
             item.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 15px;">
                     ${avatarHTML}
@@ -208,6 +209,17 @@ async function handleStartElection() {
     } catch (e) { alert(e.reason || "Lỗi: Cuộc bầu cử cũ chưa kết thúc!"); }
 }
 
+async function handleEndElection() {
+    if (!confirm("Xác nhận dừng cuộc bầu cử ngay lập tức?")) return;
+    try {
+        const tx = await contract.endElection();
+        alert("Đang yêu cầu dừng cuộc bầu cử...");
+        await tx.wait();
+        alert("Đã dừng cuộc bầu cử thành công!");
+        location.reload();
+    } catch (e) { alert(e.reason || "Lỗi khi dừng cuộc bầu cử!"); }
+}
+
 async function vote(id) {
     try {
         const tx = await contract.vote(id);
@@ -235,13 +247,15 @@ async function deleteCandidate(id) {
         location.reload();
     } catch (e) { alert(e.reason || e.message); }
 }
+
 function formatTimestamp(ts) {
-    const date = new Date(Number(ts) * 1000); // Nhân 1000 vì JS dùng miliseconds
-    return date.toLocaleString('vi-VN'); // Định dạng kiểu Việt Nam: DD/MM/YYYY, HH:MM:SS
+    const date = new Date(Number(ts) * 1000);
+    return date.toLocaleString('vi-VN');
 }
 
 window.handleAuth = handleAuth;
 window.handleStartElection = handleStartElection;
+window.handleEndElection = handleEndElection; // Đã thêm
 window.vote = vote;
 window.addNewCandidate = addNewCandidate;
 window.deleteCandidate = deleteCandidate;

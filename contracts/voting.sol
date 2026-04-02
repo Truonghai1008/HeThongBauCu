@@ -67,6 +67,13 @@ contract DecentralizedVoting {
         }
     }
 
+    // --- HÀM MỚI THÊM: Dừng cuộc bầu cử ngay lập tức ---
+    function endElection() public onlyAdmin {
+        require(electionStarted, "Election not started!");
+        electionStarted = false;
+        endTime = block.timestamp; // Chốt thời gian kết thúc là bây giờ
+    }
+
     function registerVoter(string memory _name) public {
         require(bytes(_name).length > 0, "Name empty!");
         voterNames[msg.sender] = _name;
