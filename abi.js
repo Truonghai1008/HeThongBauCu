@@ -1,6 +1,6 @@
 // abi.js
 const contractABI = [
- [
+
 	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
@@ -450,6 +450,6 @@ const contractABI = [
 		"stateMutability": "view",
 		"type": "function"
 	}
-]
+
   ];
     
