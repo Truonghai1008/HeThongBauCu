@@ -12,145 +12,117 @@
 <body>
     <div class="container">
         <header class="main-header">
-            <div class="logo-wrapper">
-                <i class="fas fa-check-to-slot logo-icon"></i>
-            </div>
+            <i class="fas fa-check-to-slot logo-icon"></i>
             <h1>Hệ Thống Bỏ Phiếu Blockchain</h1>
-            <p class="subtitle">Minh bạch • Bảo mật • Phi tập trung</p>
+            <p class="subtitle">Minh bạch - Bảo mật - Phi tập trung</p>
         </header>
 
         <div id="authSection" class="auth-container">
             <div class="card auth-card">
-                <div class="auth-header">
-                    <i class="fas fa-user-shield auth-icon"></i>
-                    <h2>Xác Thực Danh Tính</h2>
-                </div>
-                <p>Nhập tên của bạn để định danh trên sổ cái Blockchain.</p>
-                <div class="input-group-modern">
-                    <input type="text" id="voterNameInput" placeholder="Ví dụ: Nguyễn Văn A...">
-                    <button onclick="handleAuth()" class="btn-main">
-                        <i class="fas fa-paper-plane"></i> Bắt đầu
-                    </button>
-                </div>
+                <i class="fas fa-user-shield auth-icon"></i>
+                <h2>Xác Thực Danh Tính</h2>
+                <p>Vui lòng nhập tên tài khoản của bạn để tiếp tục.</p>
+                <input type="text" id="voterNameInput" placeholder="Ví dụ: Nguyễn Văn A...">
+                <button onclick="handleAuth()" class="btn-main">
+                    <i class="fas fa-sign-in-alt"></i> Xác Nhận & Đăng Nhập
+                </button>
                 <p class="note"><i class="fas fa-info-circle"></i> Tên này sẽ được lưu vĩnh viễn trên Blockchain.</p>
             </div>
         </div>
 
         <div id="mainDashboard" style="display: none;">
-            
             <div class="user-bar">
-                <div class="user-info">
-                    <div class="avatar-circle">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="user-details">
-                        <span id="displayName">Xin chào: ...</span>
-                        <span id="userRole" class="badge-role">Thành viên</span>
-                    </div>
+                <div class="user-info" style="margin-bottom: 20px; padding: 15px; background: #ffffff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; align-items: center; border: 1px solid #e0e0e0;">
+                    <i class="fas fa-user-circle" style="font-size: 1.5rem; color: #3498db; margin-right: 10px;"></i>
+                    <span id="displayName" style="font-weight: bold; font-size: 1.1rem; color: #2c3e50;">Xin chào: ...</span>
+                    <span id="userRole" style="margin-left: 12px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;"></span>
                 </div>
                 
-                <div class="top-actions">
-                    <button id="themeToggle" class="btn-icon-only" title="Đổi màu nền">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <button id="adminQuickBtn" onclick="toggleAdminPanel()" class="btn-admin-toggle" style="display: none;">
-                        <i class="fas fa-cog"></i> Quản trị
-                    </button>
-                </div>
+                <button id="adminQuickBtn" onclick="toggleAdminPanel()" class="btn-admin-toggle" style="display: none;">
+                    <i class="fas fa-cog"></i> Bảng Quản Trị
+                </button>
             </div>
 
             <div id="adminSection" style="display: none;" class="admin-panel card">
-                <div class="panel-header">
-                    <h3><i class="fas fa-tools"></i> Cấu hình hệ thống</h3>
-                    <button onclick="toggleAdminPanel()" class="btn-close-sm">&times;</button>
-                </div>
+                <h3 style="color: #2c3e50; margin-top: 0;"><i class="fas fa-tools"></i> Cấu hình hệ thống (Admin)</h3>
                 <hr>
 
-                <div class="admin-controls-grid">
-                    <div class="admin-box">
-                        <label><i class="fas fa-shield-halved"></i> Chế độ truy cập:</label>
-                        <select id="electionModeSelect" onchange="changeElectionMode()">
-                            <option value="false">Công khai (Tất cả mọi người)</option>
-                            <option value="true">Riêng tư (Chỉ Whitelist)</option>
-                        </select>
-                    </div>
+                <div style="background: #f0f2f5; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 8px;"><i class="fas fa-shield-halved"></i> Chế độ quyền truy cập:</label>
+                    <select id="electionModeSelect" onchange="changeElectionMode()" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                        <option value="false">Công khai (Tất cả mọi người)</option>
+                        <option value="true">Giới hạn (Chỉ Whitelist)</option>
+                    </select>
+                </div>
 
-                    <div id="whitelistManager" class="admin-box whitelist-section" style="display: none;">
-                        <label><i class="fas fa-list-check"></i> Whitelist (<span id="whitelistCount">0</span>):</label>
-                        <div class="mini-input-group">
-                            <input type="text" id="whitelistAddressInput" placeholder="Địa chỉ ví 0x...">
-                            <button onclick="addVoterToWhitelist()" class="btn-add-sm">Thêm</button>
-                        </div>
-                        <div id="whitelistTable" class="whitelist-scroll-area"></div>
+                <div id="whitelistManager" style="display: none; background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #c8e6c9;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 8px;"><i class="fas fa-user-plus"></i> Thêm ví vào Whitelist:</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="whitelistAddressInput" placeholder="Dán địa chỉ ví 0x..." style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+                        <button onclick="addVoterToWhitelist()" style="background: #2ecc71; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Thêm</button>
                     </div>
                 </div>
 
-                <div class="election-timer-actions">
-                    <button id="startElectionBtn" onclick="handleStartElection()" class="btn-start">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button id="startElectionBtn" onclick="handleStartElection()" 
+                        style="display:none; flex: 1; background: #e67e22; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
                         <i class="fas fa-play"></i> BẮT ĐẦU BẦU CỬ
                     </button>
-                    <button id="stopElectionBtn" onclick="handleEndElection()" class="btn-stop" style="display:none;">
-                        <i class="fas fa-stop-circle"></i> DỪNG KHẨN CẤP
+
+                    <button id="stopElectionBtn" onclick="handleEndElection()" 
+                        style="display:none; flex: 1; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        <i class="fas fa-stop-circle"></i> DỪNG NGAY
                     </button>
                 </div>
 
-                <div class="add-candidate-section">
-                    <label>Thêm ứng cử viên mới:</label>
-                    <div class="input-group-modern">
-                        <input type="text" id="candidateNameInput" placeholder="Tên ứng viên...">
-                        <button onclick="addNewCandidate()" class="btn-secondary">Xác nhận</button>
-                    </div>
+                <label style="font-weight: bold; display: block; margin-bottom: 8px;"><i class="fas fa-user-plus"></i> Thêm ứng cử viên:</label>
+                <div class="admin-input-group" style="display: flex; gap: 10px;">
+                    <input type="text" id="candidateNameInput" placeholder="Tên ứng viên mới..." style="flex:1;">
+                    <button onclick="addNewCandidate()" class="btn-add" style="white-space: nowrap;">
+                        <i class="fas fa-plus"></i> Thêm
+                    </button>
                 </div>
             </div>
 
             <div class="election-status-card">
-                <div class="status-content">
-                    <div class="pulse-icon"><i class="fas fa-clock"></i></div>
-                    <span id="timerDisplay">Đang đồng bộ Blockchain...</span>
+                <div class="status-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="timerDisplay">Đang chờ khởi tạo...</span>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 25px; padding: 20px; border: 1px solid #ddd; background: #fdfdfd; border-radius: 12px;">
+                <h3 style="color: #2c3e50;"><i class="fas fa-fingerprint"></i> Danh sách Hash phiếu bầu (Tính minh bạch)</h3>
+                <hr>
+                <div id="voteHistoryList" style="max-height: 300px; overflow-y: auto;">
+                    <p>Đang tải lịch sử giao dịch...</p>
                 </div>
             </div>
 
             <div class="dashboard-grid">
-                <div class="results-section card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-chart-pie"></i> Kết Quả Bầu Chọn</h3>
-                    </div>
+                <div class="results-section">
+                    <h3><i class="fas fa-chart-bar"></i> Kết Quả Bầu Chọn</h3>
                     <div id="resultsChart" class="results-container"></div>
                 </div>
 
-                <div class="voting-section card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-users-viewfinder"></i> Danh Sách Ứng Viên</h3>
-                    </div>
+                <div class="voting-section">
+                    <h3><i class="fas fa-list-ul"></i> Danh Sách Ứng Cử Viên</h3>
                     <div id="candidateList" class="candidate-list-container"></div>
-                </div>
-            </div>
-
-            <div class="card history-card">
-                <div class="card-header">
-                    <h3><i class="fas fa-fingerprint"></i> Nhật Ký Blockchain</h3>
-                    <small>Dữ liệu minh bạch thời gian thực</small>
-                </div>
-                <hr>
-                <div id="voteHistoryList" class="history-list">
-                    <p class="loading-text">Đang tải lịch sử...</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="editCandidateSection" class="modal-overlay" style="display:none;">
-        <div class="modal-content card">
-            <h3><i class="fas fa-edit"></i> Chỉnh sửa ứng viên</h3>
-            <input type="hidden" id="editCandidateId">
-            <div class="field-group">
-                <label>Tên hiển thị mới:</label>
-                <input type="text" id="editCandidateName">
-            </div>
-            <div class="modal-actions">
-                <button onclick="saveCandidateEdit()" class="btn-save">Lưu lại</button>
-                <button onclick="document.getElementById('editCandidateSection').style.display='none'" class="btn-cancel">Hủy</button>
-            </div>
+    <div id="editCandidateSection" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:25px; border-radius:12px; box-shadow:0 0 30px rgba(0,0,0,0.3); z-index:1000; width:320px; border: 1px solid #ddd;">
+        <h3 style="margin-top:0; color: #2c3e50;">Chỉnh sửa ứng viên</h3>
+        <input type="hidden" id="editCandidateId">
+        <div style="margin-bottom: 15px;">
+            <label style="font-size: 0.9rem; color: #666;">Tên mới:</label>
+            <input type="text" id="editCandidateName" style="width:100%; margin-top:5px; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="saveCandidateEdit()" style="flex:1; background:#2ecc71; color:white; border:none; padding:12px; border-radius:6px; cursor:pointer; font-weight:bold;">LƯU</button>
+            <button onclick="document.getElementById('editCandidateSection').style.display='none'" style="flex:1; background:#95a5a6; color:white; border:none; padding:12px; border-radius:6px; cursor:pointer; font-weight:bold;">HỦY</button>
         </div>
     </div>
 
