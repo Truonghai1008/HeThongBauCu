@@ -15,6 +15,9 @@
             <i class="fas fa-check-to-slot logo-icon"></i>
             <h1>Hệ Thống Bỏ Phiếu Blockchain</h1>
             <p class="subtitle">Minh bạch - Bảo mật - Phi tập trung</p>
+            <button id="themeToggle" class="btn-theme-nav" style="margin-top: 10px; border:none; background:none; cursor:pointer; color:#fff;">
+                <i class="fas fa-moon"></i> Chế độ tối
+            </button>
         </header>
 
         <div id="authSection" class="auth-container">
@@ -51,16 +54,18 @@
                     <label style="font-weight: bold; display: block; margin-bottom: 8px;"><i class="fas fa-shield-halved"></i> Chế độ quyền truy cập:</label>
                     <select id="electionModeSelect" onchange="changeElectionMode()" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
                         <option value="false">Công khai (Tất cả mọi người)</option>
-                        <option value="true">Giới hạn (Chỉ Whitelist)</option>
+                        <option value="true">Riêng tư (Chỉ Whitelist)</option>
                     </select>
                 </div>
 
                 <div id="whitelistManager" style="display: none; background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #c8e6c9;">
-                    <label style="font-weight: bold; display: block; margin-bottom: 8px;"><i class="fas fa-user-plus"></i> Thêm ví vào Whitelist:</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="whitelistAddressInput" placeholder="Dán địa chỉ ví 0x..." style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 8px;"><i class="fas fa-user-plus"></i> Whitelist (<span id="whitelistCount">0</span>):</label>
+                    <div style="display: flex; gap: 8px; margin-bottom:10px;">
+                        <input type="text" id="whitelistAddressInput" placeholder="Địa chỉ ví 0x..." style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
                         <button onclick="addVoterToWhitelist()" style="background: #2ecc71; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Thêm</button>
                     </div>
+                    <div id="whitelistTable" style="max-height: 150px; overflow-y: auto; background: white; border-radius: 5px; border: 1px solid #eee;">
+                        </div>
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -86,16 +91,16 @@
 
             <div class="election-status-card">
                 <div class="status-info">
-                    <i class="fas fa-info-circle"></i>
+                    <i class="fas fa-clock"></i>
                     <span id="timerDisplay">Đang chờ khởi tạo...</span>
                 </div>
             </div>
 
             <div class="card" style="margin-top: 25px; padding: 20px; border: 1px solid #ddd; background: #fdfdfd; border-radius: 12px;">
-                <h3 style="color: #2c3e50;"><i class="fas fa-fingerprint"></i> Danh sách Hash phiếu bầu (Tính minh bạch)</h3>
+                <h3 style="color: #2c3e50;"><i class="fas fa-fingerprint"></i> Nhật ký Blockchain (Giao dịch)</h3>
                 <hr>
-                <div id="voteHistoryList" style="max-height: 300px; overflow-y: auto;">
-                    <p>Đang tải lịch sử giao dịch...</p>
+                <div id="voteHistoryList" style="max-height: 200px; overflow-y: auto;">
+                    <p>Đang tải lịch sử...</p>
                 </div>
             </div>
 

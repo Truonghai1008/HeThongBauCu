@@ -26,13 +26,16 @@ contract DecentralizedVoting {
 
     bool public isPrivate = false; 
     mapping(address => bool) public whitelist;
-    address[] public whitelistAddresses; // Lưu danh sách để hiển thị lên UI
+    address[] public whitelistAddresses;
 
     mapping(uint256 => Candidate) public candidates;
     mapping(address => uint256) public lastVotedRound;
     mapping(address => string) public voterNames;
     
     VoteRecord[] public voteHistory;
+
+    event Voted(address indexed voter, uint256 indexed candidateId, uint256 round);
+    event ElectionStarted(uint256 round, uint256 endTime);
 
     modifier onlyAdmin() {
         require(msg.sender == admin, "Chi danh cho Admin!");
@@ -52,7 +55,6 @@ contract DecentralizedVoting {
         electionStarted = false;
     }
 
-    // --- QUẢN LÝ CHẾ ĐỘ & WHITELIST ---
     function setElectionMode(bool _isPrivate) public onlyAdmin {
         isPrivate = _isPrivate;
     }
@@ -64,11 +66,14 @@ contract DecentralizedVoting {
         }
     }
 
+    function removeFromWhitelist(address _voter) public onlyAdmin {
+        whitelist[_voter] = false;
+    }
+
     function getWhitelist() public view returns (address[] memory) {
         return whitelistAddresses;
     }
 
-    // --- CÁC HÀM ĐIỀU KHIỂN BẦU CỬ ---
     function startElection(uint256 _durationMinutes) public onlyAdmin {
         if (electionStarted) {
             require(block.timestamp > endTime, "Dot bau cu hien tai chua ket thuc!");
@@ -82,6 +87,7 @@ contract DecentralizedVoting {
         for (uint256 i = 1; i <= candidatesCount; i++) {
             candidates[i].voteCount = 0;
         }
+        emit ElectionStarted(electionRound, endTime);
     }
 
     function endElection() public onlyAdmin {
@@ -93,7 +99,6 @@ contract DecentralizedVoting {
         if (isPrivate) {
             require(whitelist[msg.sender], "Ban khong co ten trong Whitelist!");
         }
-
         require(lastVotedRound[msg.sender] < electionRound, "Ban da bau trong dot nay!");
         require(candidates[_candidateId].active, "Ung vien khong hop le!");
 
@@ -101,9 +106,9 @@ contract DecentralizedVoting {
         candidates[_candidateId].voteCount++;
 
         voteHistory.push(VoteRecord(msg.sender, _candidateId, block.timestamp, electionRound));
+        emit Voted(msg.sender, _candidateId, electionRound);
     }
 
-    // --- QUẢN LÝ ỨNG CỬ VIÊN ---
     function addCandidate(string memory _name, string memory _imageCID) public onlyAdmin {
         candidatesCount++;
         candidates[candidatesCount] = Candidate(candidatesCount, _name, 0, _imageCID, true);
@@ -120,7 +125,6 @@ contract DecentralizedVoting {
         candidates[_candidateId].active = false;
     }
 
-    // --- HÀM VIEW ---
     function registerVoter(string memory _name) public {
         voterNames[msg.sender] = _name;
     }
