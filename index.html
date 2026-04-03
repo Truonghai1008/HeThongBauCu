@@ -71,10 +71,16 @@
                     </div>
 
                     <div id="whitelistManager" style="display: none;" class="form-card whitelist-card">
-                        <label class="field-label"><i class="fas fa-user-plus"></i> Thêm ví vào whitelist</label>
+                        <label class="field-label"><i class="fas fa-user-plus"></i> Quản lý Whitelist (Danh sách trắng)</label>
                         <div class="admin-input-group">
                             <input type="text" id="whitelistAddressInput" placeholder="Dán địa chỉ ví 0x...">
                             <button onclick="addVoterToWhitelist()" class="btn-success">Thêm</button>
+                        </div>
+                        
+                        <div id="whitelistDisplay" class="whitelist-container" style="margin-top: 15px; max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; background: var(--bg-muted);">
+                            <p class="section-note" style="margin-bottom: 8px;">Ví có quyền truy cập (<span id="whitelistCount">0</span>):</p>
+                            <div id="whitelistItems">
+                                </div>
                         </div>
                     </div>
 

@@ -7,7 +7,7 @@ contract DecentralizedVoting {
         string name;
         uint256 voteCount;
         string imageCID; 
-        bool active;     
+        bool active;      
     }
 
     struct VoteRecord {
@@ -24,9 +24,10 @@ contract DecentralizedVoting {
     bool public electionStarted;
     uint256 public electionRound;
 
-    // --- CÁC BIẾN MỚI CHO WHITELIST ---
+    // --- QUẢN LÝ WHITELIST CẬP NHẬT ---
     bool public isPrivate = false; 
     mapping(address => bool) public whitelist;
+    address[] public whitelistAddresses; // Mảng để lưu danh sách hiển thị lên UI
 
     mapping(uint256 => Candidate) public candidates;
     mapping(address => uint256) public lastVotedRound;
@@ -58,11 +59,30 @@ contract DecentralizedVoting {
     }
 
     function addToWhitelist(address _voter) public onlyAdmin {
-        whitelist[_voter] = true;
+        require(_voter != address(0), "Dia chi khong hop le!");
+        if (!whitelist[_voter]) {
+            whitelist[_voter] = true;
+            whitelistAddresses.push(_voter);
+        }
     }
 
     function removeFromWhitelist(address _voter) public onlyAdmin {
+        require(whitelist[_voter], "Dia chi khong co trong Whitelist!");
         whitelist[_voter] = false;
+        
+        // Cập nhật lại mảng để UI hiển thị chính xác
+        for (uint256 i = 0; i < whitelistAddresses.length; i++) {
+            if (whitelistAddresses[i] == _voter) {
+                whitelistAddresses[i] = whitelistAddresses[whitelistAddresses.length - 1];
+                whitelistAddresses.pop();
+                break;
+            }
+        }
+    }
+
+    // Hàm lấy toàn bộ danh sách ví trong whitelist để hiển thị lên giao diện
+    function getWhitelist() public view returns (address[] memory) {
+        return whitelistAddresses;
     }
 
     // --- CÁC HÀM ĐIỀU KHIỂN BẦU CỬ ---
@@ -88,13 +108,12 @@ contract DecentralizedVoting {
     }
 
     function vote(uint256 _candidateId) public onlyDuringElection {
-        // Kiểm tra Whitelist nếu ở chế độ Riêng tư
         if (isPrivate) {
-            require(whitelist[msg.sender], "Ban khong co ten trong danh sach trang (Whitelist)!");
+            require(whitelist[msg.sender], "Ban khong co ten trong Whitelist!");
         }
 
-        require(lastVotedRound[msg.sender] < electionRound, "Ban da thuc hien bau chon trong dot nay roi!");
-        require(candidates[_candidateId].active, "Ung vien nay da bi xoa!");
+        require(lastVotedRound[msg.sender] < electionRound, "Ban da bau trong dot nay!");
+        require(candidates[_candidateId].active, "Ung vien khong hop le!");
 
         lastVotedRound[msg.sender] = electionRound;
         candidates[_candidateId].voteCount++;
@@ -110,21 +129,19 @@ contract DecentralizedVoting {
 
     function updateCandidate(uint256 _id, string memory _newName, string memory _newImageCID) public onlyAdmin {
         require(_id > 0 && _id <= candidatesCount, "Ung vien khong ton tai!");
-        require(candidates[_id].active, "Ung vien nay da bi xoa!");
-        require(bytes(_newName).length > 0, "Ten khong duoc de trong!");
-
+        require(candidates[_id].active, "Ung vien da bi xoa!");
         candidates[_id].name = _newName;
         candidates[_id].imageCID = _newImageCID;
     }
 
     function deleteCandidate(uint256 _candidateId) public onlyAdmin {
-        require(_candidateId > 0 && _candidateId <= candidatesCount, "Ung vien khong ton tai!");
+        require(_candidateId > 0 && _candidateId <= candidatesCount, "Loi ID!");
         candidates[_candidateId].active = false;
     }
 
-    // --- CÁC HÀM HỖ TRỢ KHÁC ---
+    // --- HÀM VIEW & HỖ TRỢ ---
     function registerVoter(string memory _name) public {
-        require(bytes(_name).length > 0, "Ten khong duoc de trong!");
+        require(bytes(_name).length > 0, "Ten khong hop le!");
         voterNames[msg.sender] = _name;
     }
 
