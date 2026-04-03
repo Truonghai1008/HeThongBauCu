@@ -1,6 +1,7 @@
 // abi.js
 const contractABI = [
 
+	
 	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
@@ -240,14 +241,8 @@ const contractABI = [
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "lastVotedRound",
+		"inputs": [],
+		"name": "maxVotesPerVoter",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -302,6 +297,11 @@ const contractABI = [
 			{
 				"internalType": "uint256",
 				"name": "_durationMinutes",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_maxVotes",
 				"type": "uint256"
 			}
 		],
@@ -418,6 +418,30 @@ const contractABI = [
 				"internalType": "address",
 				"name": "",
 				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "votesUsedInRound",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
 			}
 		],
 		"name": "whitelist",
@@ -450,6 +474,7 @@ const contractABI = [
 		"stateMutability": "view",
 		"type": "function"
 	}
+
 
   ];
     

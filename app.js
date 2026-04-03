@@ -1,8 +1,7 @@
 let contract;
 let signer;
 let timerInterval;
-// CẬP NHẬT ĐỊA CHỈ CONTRACT MỚI CỦA BẠN TẠI ĐÂY
-const contractAddress = "0x3E764c91773FA364F89E956841D0ECe538c5B9Db"; 
+const contractAddress = "0x701B0c8d4803b52dFF2d4300eff84e2d0855eA18"; 
 const THEME_KEY = "bauCuTheme";
 
 // --- QUẢN LÝ THEME ---
@@ -112,12 +111,29 @@ async function showDashboard(address, name) {
     }
 
     document.getElementById("displayName").innerText = `Xin chào: ${name}`;
+    
+    // Cập nhật hiển thị số phiếu đã dùng
+    await updateVoterStatus(address);
+    
     loadCandidates(isAdmin);
     loadVoteHistory();
     runCountdown();
 }
 
-// --- QUẢN LÝ WHITELIST (CHỨC NĂNG MỚI) ---
+// Hàm hiển thị số phiếu hiện tại của người dùng
+async function updateVoterStatus(address) {
+    try {
+        const round = await contract.electionRound();
+        const used = await contract.votesUsedInRound(address, round);
+        const max = await contract.maxVotesPerVoter();
+        const statusLabel = document.getElementById("voterStatusLabel");
+        if (statusLabel) {
+            statusLabel.innerHTML = `<i class="fas fa-ticket-alt"></i> Phiếu đã dùng: <strong>${used}/${max}</strong>`;
+        }
+    } catch (e) { console.error("Lỗi cập nhật trạng thái phiếu:", e); }
+}
+
+// --- QUẢN LÝ WHITELIST ---
 async function loadWhitelist() {
     const itemsDiv = document.getElementById("whitelistItems");
     const countLabel = document.getElementById("whitelistCount");
@@ -214,11 +230,18 @@ async function runCountdown() {
     timerInterval = setInterval(updateUI, 1000);
 }
 
+// CẬP NHẬT: Thêm yêu cầu nhập số phiếu bầu tối đa
 async function handleStartElection() {
     const min = prompt("Nhập số phút bầu cử:", "10");
     if (!min) return;
+
+    const maxVotes = prompt("Mỗi cử tri được bầu tối đa bao nhiêu phiếu?", "1");
+    if (!maxVotes || isNaN(maxVotes) || parseInt(maxVotes) <= 0) {
+        return alert("Số phiếu không hợp lệ!");
+    }
+
     try {
-        const tx = await contract.startElection(min);
+        const tx = await contract.startElection(min, maxVotes);
         await tx.wait();
         location.reload();
     } catch (e) { alert(e.reason || "Lỗi khởi tạo!"); }
@@ -239,7 +262,7 @@ async function vote(id) {
         await tx.wait();
         alert("Bầu chọn thành công!");
         location.reload();
-    } catch (e) { alert(e.reason || "Lỗi: Bạn không có quyền hoặc đã bầu!"); }
+    } catch (e) { alert(e.reason || "Lỗi: Bạn đã hết lượt bầu hoặc không có quyền!"); }
 }
 
 // --- QUẢN LÝ ỨNG VIÊN ---
@@ -350,10 +373,8 @@ async function loadVoteHistory() {
             return;
         }
 
-        // Lấy 10 phiếu bầu mới nhất
         for (let i = total - 1; i >= Math.max(0, total - 10); i--) {
             const record = await contract.voteHistory(i);
-            // record[0]: voter, record[1]: candidateId, record[2]: timestamp, record[3]: round
             const timeString = new Date(Number(record[2]) * 1000).toLocaleString("vi-VN");
 
             const row = document.createElement("div");
@@ -375,7 +396,6 @@ async function loadVoteHistory() {
     }
 }
 
-// --- EXPOSE WINDOW FUNCTIONS ---
 window.handleAuth = handleAuth;
 window.handleStartElection = handleStartElection;
 window.handleEndElection = handleEndElection;
