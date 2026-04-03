@@ -24,9 +24,11 @@ contract DecentralizedVoting {
     bool public electionStarted;
     uint256 public electionRound;
 
-    // --- CÁC BIẾN MỚI CHO WHITELIST ---
+    // --- QUẢN LÝ WHITELIST ---
     bool public isPrivate = false; 
     mapping(address => bool) public whitelist;
+    address[] public whitelistAddresses;
+    mapping(address => uint256) private addressToIndex; 
 
     mapping(uint256 => Candidate) public candidates;
     mapping(address => uint256) public lastVotedRound;
@@ -52,17 +54,40 @@ contract DecentralizedVoting {
         electionStarted = false;
     }
 
-    // --- QUẢN LÝ CHẾ ĐỘ & WHITELIST ---
+    // --- CÁC HÀM QUẢN LÝ CHẾ ĐỘ & WHITELIST ---
     function setElectionMode(bool _isPrivate) public onlyAdmin {
         isPrivate = _isPrivate;
     }
 
     function addToWhitelist(address _voter) public onlyAdmin {
-        whitelist[_voter] = true;
+        require(_voter != address(0), "Dia chi khong hop le");
+        if (!whitelist[_voter]) {
+            whitelist[_voter] = true;
+            addressToIndex[_voter] = whitelistAddresses.length;
+            whitelistAddresses.push(_voter);
+        }
     }
 
     function removeFromWhitelist(address _voter) public onlyAdmin {
-        whitelist[_voter] = false;
+        require(whitelist[_voter], "Vi nay khong co trong Whitelist");
+
+        uint256 indexToDelete = addressToIndex[_voter];
+        uint256 lastIndex = whitelistAddresses.length - 1;
+
+        // Nếu người cần xóa không phải người cuối cùng, đưa người cuối cùng vào chỗ trống
+        if (indexToDelete != lastIndex) {
+            address lastAddr = whitelistAddresses[lastIndex];
+            whitelistAddresses[indexToDelete] = lastAddr;
+            addressToIndex[lastAddr] = indexToDelete;
+        }
+
+        whitelistAddresses.pop(); // Xóa phần tử cuối
+        delete addressToIndex[_voter];
+        whitelist[_voter] = false; // Cập nhật lại mapping để không thể bầu
+    }
+
+    function getWhitelist() public view returns (address[] memory) {
+        return whitelistAddresses;
     }
 
     // --- CÁC HÀM ĐIỀU KHIỂN BẦU CỬ ---
@@ -88,7 +113,6 @@ contract DecentralizedVoting {
     }
 
     function vote(uint256 _candidateId) public onlyDuringElection {
-        // Kiểm tra Whitelist nếu ở chế độ Riêng tư
         if (isPrivate) {
             require(whitelist[msg.sender], "Ban khong co ten trong danh sach trang (Whitelist)!");
         }
@@ -122,7 +146,7 @@ contract DecentralizedVoting {
         candidates[_candidateId].active = false;
     }
 
-    // --- CÁC HÀM HỖ TRỢ KHÁC ---
+    // --- HÀM HỖ TRỢ ---
     function registerVoter(string memory _name) public {
         require(bytes(_name).length > 0, "Ten khong duoc de trong!");
         voterNames[msg.sender] = _name;
