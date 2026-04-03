@@ -21,7 +21,6 @@
                 <i class="fas fa-check-to-slot logo-icon"></i>
                 <h1>Hệ Thống Bỏ Phiếu Blockchain</h1>
                 <p class="subtitle">Minh bạch · Bảo mật · Phi tập trung</p>
-                <p class="hero-note">Tông màu lấy cảm hứng từ bầu trời xanh và sắc tím xanh núi tuyết, ưu tiên độ tương phản để đọc rõ hơn ở cả nền sáng lẫn nền tối.</p>
             </header>
 
             <div id="authSection" class="auth-container">
@@ -66,12 +65,12 @@
                         <label class="field-label"><i class="fas fa-shield-halved"></i> Chế độ quyền truy cập</label>
                         <select id="electionModeSelect" onchange="changeElectionMode()" class="field-control">
                             <option value="false">Công khai (Tất cả mọi người)</option>
-                            <option value="true">Giới hạn (Chỉ whitelist)</option>
+                            <option value="true">Giới hạn (Chỉ Cử tri được cấp phép)</option>
                         </select>
                     </div>
 
                     <div id="whitelistManager" style="display: none;" class="form-card whitelist-card">
-                        <label class="field-label"><i class="fas fa-user-plus"></i> Quản lý Whitelist (Danh sách trắng)</label>
+                        <label class="field-label"><i class="fas fa-user-plus"></i> Quản Lý Danh Sách Cử Tri</label>
                         <div class="admin-input-group">
                             <input type="text" id="whitelistAddressInput" placeholder="Dán địa chỉ ví 0x...">
                             <button onclick="addVoterToWhitelist()" class="btn-success">Thêm</button>
@@ -117,7 +116,7 @@
 
                 <div class="card history-card">
                     <div class="section-tag">Minh bạch</div>
-                    <h3><i class="fas fa-fingerprint"></i> Danh sách hash phiếu bầu</h3>
+                    <h3><i class="fas fa-fingerprint"></i> Danh sách phiếu bầu</h3>
                     <p class="section-note">Theo dõi các bản ghi mới nhất để kiểm tra tính công khai của quá trình bỏ phiếu.</p>
                     <hr>
                     <div id="voteHistoryList" class="history-list">
