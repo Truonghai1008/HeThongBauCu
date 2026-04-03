@@ -338,18 +338,41 @@ async function saveCandidateEdit() {
 
 async function loadVoteHistory() {
     const historyDiv = document.getElementById("voteHistoryList");
+    if (!historyDiv) return;
+
     try {
         const count = await contract.getVoteHistoryCount();
         const total = Number(count);
-        historyDiv.innerHTML = total === 0 ? '<p class="section-note">Chưa có bản ghi nào.</p>' : "";
-        for (let i = total - 1; i >= Math.max(0, total - 5); i--) {
+        historyDiv.innerHTML = "";
+
+        if (total === 0) {
+            historyDiv.innerHTML = '<p class="section-note">Chưa có bản ghi phiếu bầu nào.</p>';
+            return;
+        }
+
+        // Lấy 10 phiếu bầu mới nhất
+        for (let i = total - 1; i >= Math.max(0, total - 10); i--) {
             const record = await contract.voteHistory(i);
+            // record[0]: voter, record[1]: candidateId, record[2]: timestamp, record[3]: round
+            const timeString = new Date(Number(record[2]) * 1000).toLocaleString("vi-VN");
+
             const row = document.createElement("div");
             row.className = "history-entry";
-            row.innerHTML = `<div class="history-meta"><i class="far fa-clock"></i> Ví: ${record[0].substring(0, 10)}... | Ứng viên: ${record[1]}</div>`;
+            row.innerHTML = `
+                <div class="history-item-header">
+                    <span class="round-tag">Đợt #${record[3]}</span>
+                    <span class="time-tag"><i class="far fa-clock"></i> ${timeString}</span>
+                </div>
+                <div class="history-item-body">
+                    <p><strong>Ví:</strong> ${record[0].substring(0, 12)}...${record[0].substring(38)}</p>
+                    <p><strong>Bầu cho ID:</strong> <span class="candidate-id-tag">#${record[1]}</span></p>
+                </div>
+            `;
             historyDiv.appendChild(row);
         }
-    } catch (e) { historyDiv.innerHTML = "Lỗi tải lịch sử."; }
+    } catch (err) {
+        console.error("Lỗi load lịch sử:", err);
+    }
 }
 
 // --- EXPOSE WINDOW FUNCTIONS ---
