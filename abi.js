@@ -214,6 +214,19 @@ const contractABI = [
     },
     {
       "inputs": [],
+      "name": "getWhitelist",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "isPrivate",
       "outputs": [
         {
@@ -253,19 +266,6 @@ const contractABI = [
         }
       ],
       "name": "registerVoter",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_voter",
-          "type": "address"
-        }
-      ],
-      "name": "removeFromWhitelist",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -412,6 +412,25 @@ const contractABI = [
           "internalType": "bool",
           "name": "",
           "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "whitelistAddresses",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
         }
       ],
       "stateMutability": "view",
